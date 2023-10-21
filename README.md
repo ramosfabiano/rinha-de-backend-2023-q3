@@ -1,6 +1,6 @@
 # Rinha de Backend
 
-Este pequeno projeto foi inspirado pela [Rinha de Backend](https://github.com/zanfranceschi/rinha-de-backend-2023-q3).
+Este pequeno projeto foi inspirado pelo desafio proposto na [Rinha de Backend 2023 Q3](https://github.com/zanfranceschi/rinha-de-backend-2023-q3).
 
 Obviamente cheguei atrasado na festa, mas achei interessante decidi fazer minha implementação como exercício.
 
