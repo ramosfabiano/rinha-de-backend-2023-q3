@@ -14,10 +14,10 @@ Os testes de estresse podem ser encontrados [aqui](https://github.com/zanfrances
 
 ## Tech Stack
 
+- Postgres
 - Python / FastAPI
-- PostgreSQL
-- Redis
 - Nginx
+- Redis
 
 ## Execução
 
