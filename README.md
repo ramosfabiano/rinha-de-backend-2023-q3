@@ -27,6 +27,23 @@ A aplicação completa (incluindo todos os componentes) pode ser iniciada da seg
 podman-compose up
 ```
 
+## Implementação
+
+### Banco de Dados
+
+Utilizamos o *Postgres* como banco de dados, a partir da imagem padrão `docker.io/postgres`.  Vale a pena destacar as configurações customizadas presentes em `postgres/config.sql`,
+em particular o número máximo de conexões (`max_connections`), crítico neste conexto. Os valores utilizados aqui foram determinados baseados em experimentação.
+
+### API
+
+
+### Balanceamento de Carga
+
+
+### Caching
+
+
 ## Resultados
+
 
 
