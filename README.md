@@ -19,7 +19,7 @@ Os testes de estresse podem ser encontrados [aqui](https://github.com/zanfrances
 - Redis
 - Nginx
 
-## Como Executar
+## Execução
 
 A aplicação completa (incluindo todos os componentes) pode ser iniciada da seguinte forma:
 
