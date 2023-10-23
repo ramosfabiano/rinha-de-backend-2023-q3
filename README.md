@@ -24,6 +24,7 @@ Os testes de estresse podem ser encontrados [aqui](https://github.com/zanfrances
 A aplicação completa (incluindo todos os componentes) pode ser iniciada da seguinte forma:
 
 ```
+podman-compose build
 podman-compose up
 ```
 
@@ -31,11 +32,12 @@ podman-compose up
 
 ### Banco de Dados
 
-Utilizamos o *Postgres* como banco de dados, a partir da imagem padrão `docker.io/postgres`.  Vale a pena destacar as configurações customizadas presentes em `postgres/config.sql`,
-em particular o número máximo de conexões (`max_connections`), crítico neste conexto. Os valores utilizados aqui foram determinados baseados em experimentação.
+Utilizamos o *Postgres* como banco de dados, a partir da imagem padrão `docker.io/postgres`.  Vale a pena destacar as configurações customizadas presentes em `postgres/config.sql`.
+Os valores utilizados aqui foram determinados baseados em experimentação.
 
 ### API
 
+Implementamos a API em python, utilizando o *framework* FastAPI.
 
 ### Balanceamento de Carga
 
