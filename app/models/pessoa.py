@@ -10,14 +10,12 @@ class Pessoa(Base):
     apelido = Column(String(32), unique=True)
     nome = Column(String(100), unique=False)
     nascimento = Column(String(10), unique=False) #AAAA-MM-DD
-    stack = Column(ARRAY(String(32)), unique=False)
-
-    @property
-    def stack(self) -> str:
-        return ' '.join(self.stack) if self.stack else None
-                       
-    def __init__(self, apelido, nome, nascimento, stack):
+    stack = Column(String(2048), unique=False)
+        
+    def __init__(self, id, apelido, nome, nascimento, stack):
+        self.id = id
         self.apelido = apelido
         self.nome = nome
         self.nascimento = nascimento
         self.stack = stack
+        #self.stack = ' '.join(stack) if stack else None
