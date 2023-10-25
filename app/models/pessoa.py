@@ -1,6 +1,7 @@
 from sqlalchemy import Column, String, Integer, Date, ARRAY
 from models.base import Base
-
+from datetime import date
+import uuid
 
 class Pessoa(Base):
 
@@ -12,10 +13,9 @@ class Pessoa(Base):
     nascimento = Column(String(10), unique=False) #AAAA-MM-DD
     stack = Column(String(2048), unique=False)
         
-    def __init__(self, id, apelido, nome, nascimento, stack):
-        self.id = id
+    def __init__(self, apelido, nome, nascimento, stack):
+        self.id = str(uuid.uuid4())
         self.apelido = apelido
         self.nome = nome
         self.nascimento = nascimento
-        self.stack = stack
-        #self.stack = ' '.join(stack) if stack else None
+        self.stack = ' '.join(stack) if stack else None

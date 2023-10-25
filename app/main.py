@@ -1,56 +1,102 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import ValidationError
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse, PlainTextResponse, RedirectResponse
+from fastapi.exceptions import RequestValidationError
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy import or_
 from typing import List
 import json
+from datetime import date
 
 from models import *
 from schemas import *
 
-# see 
-#	https://fastapi.tiangolo.com/
-#   https://fastapi.tiangolo.com/tutorial/handling-errors/
-#   https://fastapi.tiangolo.com/tutorial/response-model/
-
 app = FastAPI()
 
+# exception handler global para os casos de falha de validação do schema do request
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exception):
+    return JSONResponse(status_code=400, content=ErrorRepresentation(400, 'Bad request'))
+
+# docs
 @app.get("/")
 async def hello():
-    return {"healthy": "yes"};
-    
-#
-# teste somente, remover
-# 
+    return RedirectResponse(url='/docs')
+ 
+'''
+curl -v -X 'POST'   'http://localhost:8081/pessoas'   -H 'accept: application/json'   -H 'Content-Type: application/json'   -d '{
+  "apelido": "snowj",
+  "nome": "John Snow",
+  "nascimento": "2023-10-25",
+  "stack": ["C++", "Python"]
+}' | jq
+'''
+@app.post("/pessoas", response_model=PessoaViewSchema, status_code=201)
+async def cria_pessoa(pessoa: PessoaAddSchema):
+    try:
+        session = Session()
+        p = Pessoa(pessoa.apelido, pessoa.nome, pessoa.nascimento, pessoa.stack)
+        session.add(p)
+        session.commit()
+        return JSONResponse(PessoaRepresentation(p), headers={'Location': f'/pessoas/{p.id}'})
+    except IntegrityError:
+        return JSONResponse(status_code=422, content=ErrorRepresentation(422, 'Unprocessable entity/content'))
+    except Exception as e:
+        return JSONResponse(status_code=500, content=ErrorRepresentation(500, 'Internal server error'))
+
+'''
+curl -v -X 'GET' 'http://localhost:8081/pessoas/c25efe45-36f4-45a0-adbb-4093642c4968' -H 'accept: application/json' | jq
+'''  
+@app.get("/pessoas/{id}", response_model=PessoaViewSchema, status_code=200)
+async def retorna_pessoa(id: str):
+    try:
+        session = Session()
+        p = session.query(Pessoa).filter(Pessoa.id == id).first()
+        if p is None:
+            return JSONResponse(status_code=404, content=ErrorRepresentation(404, 'Not found'))
+        return JSONResponse(PessoaRepresentation(p))
+    except Exception as e:
+        return JSONResponse(status_code=500, content=ErrorRepresentation(500, 'Internal server error'))
+
+'''
+curl -v -X 'GET' 'http://localhost:8081/pessoas?t=python' -H 'accept: application/json' | jq
+'''
 @app.get("/pessoas", response_model=PessoaListViewSchema, status_code=200)
+async def busca_pessoas(t: str):
+    try:
+        session = Session()
+        # spec: A busca não precisa ser paginada e poderá retornar apenas os 50 primeiros registros 
+        print(f'T is {t}')
+        p = session.query(Pessoa).filter(or_(Pessoa.apelido.ilike(f'%{t}%'),Pessoa.nome.ilike(f'%{t}%'),Pessoa.stack.ilike(f'%{t}%'))).limit(50).all()
+        # spec: O status code deverá ser sempre 200 - Ok, mesmo para o caso da busca não retornar resultados (vazio).
+        if p is None:
+            p = []
+        return JSONResponse(PessoaListRepresentation(p))
+    except Exception as e:
+        return JSONResponse(status_code=500, content=ErrorRepresentation(500, 'Internal server error'))
+
+
+'''
+curl -v -X 'GET' 'http://localhost:8081/contagem-pessoas' 
+'''
+@app.get("/contagem-pessoas", response_model=str, status_code=200)
+async def conta_pessoas(): 
+    try:
+        session = Session()
+        p = session.query(Pessoa).count()
+        return PlainTextResponse(str(p))
+    except Exception as e:
+        return JSONResponse(status_code=500, content=ErrorRepresentation(500, 'Internal server error'))
+
+
+ # testing only, remove me
+'''
+curl -v http://localhost:8081/pessoas-all |  jq
+'''
+@app.get("/pessoas-all", response_model=PessoaListViewSchema, status_code=200)
 async def lista_pessoas():
     try:
-        p1 = Pessoa('id1','x','x','2023-10-01', ['C++', 'Java']);
-        p2 = Pessoa('id2','y','y','2023-10-02', ['JS', 'Python']); 
-        pessoas = [p1, p2]
-        return PessoaListRepresentation(pessoas)
+        session = Session()
+        p = session.query(Pessoa).all()  
+        return JSONResponse(PessoaListRepresentation(p))
     except Exception as e:
-        print(e)
-        raise HTTPException(status_code=500, detail='Internal server error')
-
-                      
-'''
-@app.get("/pessoas/{id}")               #200, 404
-async def retorna_pessoa(id: int):
-    # TODO: implementar
-
-@app.post("/pessoas")
-async def cria_pessoa(pessoa: Pessoa):  #201, 400, 422
-    # TODO: implementar
-
-@app.get("/pessoas")
-async def busca_pessoas(termo: str):     #200, 400
-    # TODO: implementar
-
-@app.get("/contagem-pessoas")
-async def conta_pessoas():               #200
-    """
-    Retorna a contagem de pessoas cadastradas.
-    """
-    # Implementação não fornecida
-'''
-
-
+        return JSONResponse(status_code=500, content=ErrorRepresentation(500, 'Internal server error'))

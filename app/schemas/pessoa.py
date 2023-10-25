@@ -1,6 +1,6 @@
 from pydantic import BaseModel, constr
-from datetime import date
 from typing import List, Optional
+from datetime import date
 
 from models.pessoa import Pessoa
 
@@ -9,19 +9,18 @@ from models.pessoa import Pessoa
 #
 
 class PessoaAddSchema(BaseModel):
-    apelido: str
-    nome : str
-    nascimento : str
+    apelido: constr(max_length=32)
+    nome : constr(max_length=100)
+    nascimento : date
     stack : Optional[List[constr(max_length=32)]] = None
 
 class PessoaViewSchema(PessoaAddSchema):
-    id: str
+    id: constr(max_length=36)
 	
 PessoaListViewSchema = List[PessoaViewSchema] 
 
 class PessoaSearchSchema(BaseModel):
     search_term: str
-
 
 #
 # helpers
@@ -32,11 +31,16 @@ def PessoaRepresentation(pessoa: Pessoa):
     	"id": pessoa.id,
         "apelido": pessoa.apelido,
         "nome": pessoa.nome,
-        "nascimento": pessoa.nascimento, 
-        "stack": pessoa.stack
+        "nascimento": pessoa.nascimento,
+        "stack": list(pessoa.stack.split(" "))
     }
 
 def PessoaListRepresentation(pessoas: List[Pessoa]):
     return [PessoaRepresentation(p) for p in pessoas]
-    
+
+def ErrorRepresentation(status_code, message):
+    return {
+    	"status": status_code,
+        "message": message
+    }
 
