@@ -19,36 +19,6 @@ Os testes de estresse podem ser encontrados [aqui](https://github.com/zanfrances
 - Nginx
 - Redis
 
-## Execução
-
-A aplicação completa (incluindo todos os componentes) pode ser iniciada da seguinte forma:
-
-```
-podman-compose build
-podman-compose up
-```
-
-Para terminar sua execução:
-
-```
-podman-compose down
-```
-
-## Execução dos unit tests
-
-Os testes unitários podem ser executados da seguinte forma:
-
-```
-podman-compose -f docker-compose-tests.yml build
-podman-compose -f docker-compose-tests.yml up
-```
-
-Para terminar sua execução:
-
-```
-podman-compose -f docker-compose-tests.yml down
-```
-
 ## Implementação
 
 ### Banco de Dados
@@ -66,7 +36,40 @@ Implementamos a API em python, utilizando o *framework* FastAPI.
 ### Caching
 
 
-## Resultados
+
+## Execução
+
+A aplicação completa (incluindo todos os componentes) pode ser iniciada da seguinte forma:
+
+```
+podman-compose build
+podman-compose up
+```
+
+Para terminar sua execução:
+
+```
+podman-compose down
+```
+
+## Execução dos Testes Unitários
+
+Os testes unitários podem ser executados da seguinte forma:
+
+```
+podman-compose -f docker-compose-tests.yml build
+podman-compose -f docker-compose-tests.yml up
+```
+
+Para terminar sua execução:
+
+```
+podman-compose -f docker-compose-tests.yml down
+```
+
+## Execução dos Testes de Estresse
+
+### Resultados
 
 
 
