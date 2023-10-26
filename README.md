@@ -51,6 +51,23 @@ podman-compose -f docker-compose-tests.yml down
 
 ## Execução dos Testes de Estresse
 
+Originalmente disponíveis [aqui](https://github.com/zanfranceschi/rinha-de-backend-2023-q3/tree/main/stress-test), por motivos de conveniência reproduzimos o conteúdo dos testes na pasta `stress-test`.
+
+O primeiro passo é instalar a ferramenta *gatling* (caso já não esteja disponível), através do script auxiliar. O comando abaixo irá instalar o gatling no diretório `~/bin/gatling-3.9.5`.
+
+```
+cd stress-test
+./install-gatling.sh ~/bin/
+```
+
+O passo seguinte é a execução dos testes em si, conforme mostrado. Antes de executar os testes, inicie a aplicação conforme explicado [anteriormente](#Execução da Aplicação).
+
+```
+cd stress-test
+./run-test.sh ~/bin/gatling-3.9.5/
+```
+
+Os resultados, assim como os logs de execução, podem ser encontrados na pasta `stress-test/user-files/results`.
 
 ### Resultados
 
