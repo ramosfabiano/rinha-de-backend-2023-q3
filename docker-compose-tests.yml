@@ -36,6 +36,3 @@ services:
     depends_on:
       postgres_test:
         condition: service_healthy
-
-
-
