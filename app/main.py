@@ -37,6 +37,8 @@ async def cria_pessoa(pessoa: PessoaAddSchema):
         p = Pessoa(pessoa.apelido, pessoa.nome, pessoa.nascimento, pessoa.stack)
         session.add(p)
         session.commit()
+        session.refresh(p)
+        session.close()
         return JSONResponse(PessoaRepresentation(p), headers={'Location': f'/pessoas/{p.id}'})
     except IntegrityError:
         return JSONResponse(status_code=422, content=ErrorRepresentation(422, 'Unprocessable entity/content'))
@@ -51,6 +53,7 @@ async def retorna_pessoa(id: str):
     try:
         session = Session()
         p = session.query(Pessoa).filter(Pessoa.id == id).first()
+        session.close()
         if p is None:
             return JSONResponse(status_code=404, content=ErrorRepresentation(404, 'Not found'))
         return JSONResponse(PessoaRepresentation(p))
@@ -65,8 +68,8 @@ async def busca_pessoas(t: str):
     try:
         session = Session()
         # spec: A busca não precisa ser paginada e poderá retornar apenas os 50 primeiros registros 
-        print(f'T is {t}')
         p = session.query(Pessoa).filter(or_(Pessoa.apelido.ilike(f'%{t}%'),Pessoa.nome.ilike(f'%{t}%'),Pessoa.stack.ilike(f'%{t}%'))).limit(50).all()
+        session.close()
         # spec: O status code deverá ser sempre 200 - Ok, mesmo para o caso da busca não retornar resultados (vazio).
         if p is None:
             p = []
@@ -83,6 +86,7 @@ async def conta_pessoas():
     try:
         session = Session()
         p = session.query(Pessoa).count()
+        session.close()
         return PlainTextResponse(str(p))
     except Exception as e:
         return JSONResponse(status_code=500, content=ErrorRepresentation(500, 'Internal server error'))
@@ -97,6 +101,7 @@ async def lista_pessoas():
     try:
         session = Session()
         p = session.query(Pessoa).all()  
+        session.close()
         return JSONResponse(PessoaListRepresentation(p))
     except Exception as e:
         return JSONResponse(status_code=500, content=ErrorRepresentation(500, 'Internal server error'))

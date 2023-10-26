@@ -14,7 +14,7 @@ database_path=f'postgresql://{pg_user}:{pg_pwd}@localhost:5432/{pg_db}'
 engine = create_engine(database_path, echo=False)
 
 # cria a SQLAlchemy session factory
-Session = sessionmaker(bind=engine)
+Session = sessionmaker(autocommit=False, autoflush=True, bind=engine)
 
 # cria as tabelas
 # Base.metadata.create_all(engine)
