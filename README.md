@@ -60,7 +60,7 @@ cd stress-test
 ./install-gatling.sh ~/bin/
 ```
 
-O passo seguinte é a execução dos testes em si, conforme mostrado. Antes de executar os testes, inicie a aplicação conforme explicado [anteriormente](#Execução da Aplicação).
+O passo seguinte é a execução dos testes em si, conforme mostrado. Antes de executar os testes, inicie a aplicação conforme explicado [anteriormente](#execu%C3%A7%C3%A3o-dos-testes-de-estresse).
 
 ```
 cd stress-test
