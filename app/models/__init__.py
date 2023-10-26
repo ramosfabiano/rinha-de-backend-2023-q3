@@ -7,10 +7,12 @@ from models.base import Base
 from models.pessoa import Pessoa
 
 # conecta a base de dados
+pg_host = os.environ['POSTGRES_HOST']
+pg_port = os.environ['POSTGRES_PORT']
 pg_db = os.environ['POSTGRES_DB']
 pg_user = os.environ['POSTGRES_USER']
 pg_pwd = os.environ['POSTGRES_PASSWORD']
-database_path=f'postgresql://{pg_user}:{pg_pwd}@localhost:5432/{pg_db}'
+database_path=f'postgresql://{pg_user}:{pg_pwd}@{pg_host}:{pg_port}/{pg_db}'
 engine = create_engine(database_path, echo=False)
 
 # cria a SQLAlchemy session factory

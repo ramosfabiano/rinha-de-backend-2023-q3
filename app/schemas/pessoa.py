@@ -32,7 +32,7 @@ def PessoaRepresentation(pessoa: Pessoa):
         "apelido": pessoa.apelido,
         "nome": pessoa.nome,
         "nascimento": pessoa.nascimento,
-        "stack": list(pessoa.stack.split(" "))
+        "stack": list(pessoa.stack.split(" ")) if pessoa.stack else None
     }
 
 def PessoaListRepresentation(pessoas: List[Pessoa]):

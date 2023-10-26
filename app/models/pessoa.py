@@ -11,7 +11,7 @@ class Pessoa(Base):
     apelido = Column(String(32), unique=True)
     nome = Column(String(100), unique=False)
     nascimento = Column(String(10), unique=False) #AAAA-MM-DD
-    stack = Column(String(2048), unique=False)
+    stack = Column(String(2048), unique=False, nullable=True)
         
     def __init__(self, apelido, nome, nascimento, stack):
         self.id = str(uuid.uuid4())

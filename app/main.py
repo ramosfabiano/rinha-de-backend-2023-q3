@@ -90,18 +90,3 @@ async def conta_pessoas():
         return PlainTextResponse(str(p))
     except Exception as e:
         return JSONResponse(status_code=500, content=ErrorRepresentation(500, 'Internal server error'))
-
-
- # testing only, remove me
-'''
-curl -v http://localhost:8081/pessoas-all |  jq
-'''
-@app.get("/pessoas-all", response_model=PessoaListViewSchema, status_code=200)
-async def lista_pessoas():
-    try:
-        session = Session()
-        p = session.query(Pessoa).all()  
-        session.close()
-        return JSONResponse(PessoaListRepresentation(p))
-    except Exception as e:
-        return JSONResponse(status_code=500, content=ErrorRepresentation(500, 'Internal server error'))

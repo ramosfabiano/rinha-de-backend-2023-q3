@@ -28,6 +28,27 @@ podman-compose build
 podman-compose up
 ```
 
+Para terminar sua execução:
+
+```
+podman-compose down
+```
+
+## Execução dos unit tests
+
+Os testes unitários podem ser executados da seguinte forma:
+
+```
+podman-compose -f docker-compose-tests.yml build
+podman-compose -f docker-compose-tests.yml up
+```
+
+Para terminar sua execução:
+
+```
+podman-compose -f docker-compose-tests.yml down
+```
+
 ## Implementação
 
 ### Banco de Dados
