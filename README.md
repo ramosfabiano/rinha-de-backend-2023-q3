@@ -14,30 +14,12 @@ Os testes de estresse podem ser encontrados [aqui](https://github.com/zanfrances
 
 ## Tech Stack
 
-- Postgres
-- Python / FastAPI
-- Nginx
-- Redis
+- Postgres (banco de dados)
+- Python / FastAPI  (*framework*)
+- Nginx (balanceamento de carga)
+- Redis (*caching*)
 
-## Implementação
-
-### Banco de Dados
-
-Utilizamos o *Postgres* como banco de dados, a partir da imagem padrão `docker.io/postgres`.  Vale a pena destacar as configurações customizadas presentes em `postgres/config.sql`.
-Os valores utilizados aqui foram determinados baseados em experimentação.
-
-### API
-
-Implementamos a API em python, utilizando o *framework* FastAPI.
-
-### Balanceamento de Carga
-
-
-### Caching
-
-
-
-## Execução
+## Execução da Aplicação
 
 A aplicação completa (incluindo todos os componentes) pode ser iniciada da seguinte forma:
 
@@ -68,6 +50,7 @@ podman-compose -f docker-compose-tests.yml down
 ```
 
 ## Execução dos Testes de Estresse
+
 
 ### Resultados
 
