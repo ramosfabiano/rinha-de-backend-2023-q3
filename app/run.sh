@@ -1,3 +1,3 @@
 #/bin/bash
 
-uvicorn main:app --reload --port $APP_PORT
+uvicorn main:app --workers 2 --port $APP_PORT

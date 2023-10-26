@@ -11,6 +11,7 @@ services:
       - ./postgres/vars.env
     volumes:
       - ./postgres/config.sql:/docker-entrypoint-initdb.d/config.sql
+      - ./postgres/table.sql:/docker-entrypoint-initdb.d/table.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
@@ -23,7 +24,7 @@ services:
     container_name: test_app
     build: 
       context: ./
-      dockerfile: Dockerfile.tests
+      dockerfile: app/tests/Dockerfile.tests
     hostname: test_app
     network_mode: host  
     env_file:

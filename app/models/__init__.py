@@ -21,4 +21,6 @@ engine = create_engine(database_path, echo=False)
 Session = sessionmaker(autocommit=False, autoflush=True, bind=engine)
 
 # cria as tabelas
-Base.metadata.create_all(engine)
+# realizamos a criação da tabela diretamente no banco via sql
+# pois o create_all() causa race conditions quando usados multiplos workers.
+# Base.metadata.create_all(engine)

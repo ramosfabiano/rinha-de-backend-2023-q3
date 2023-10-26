@@ -7,6 +7,7 @@ class Pessoa(Base):
 
     __tablename__ = 'pessoas'
 
+    # pré-criada em table.sql
     id = Column(String(36), primary_key=True)
     apelido = Column(String(32), unique=True, nullable=False)
     nome = Column(String(100), unique=False, nullable=False)

@@ -11,6 +11,7 @@ services:
       - ./postgres/vars.env
     volumes:
       - ./postgres/config.sql:/docker-entrypoint-initdb.d/config.sql
+      - ./postgres/table.sql:/docker-entrypoint-initdb.d/table.sql
     deploy:
       resources:
         limits:
@@ -28,7 +29,7 @@ services:
     container_name: app01
     build: 
       context: ./
-      dockerfile: Dockerfile.app
+      dockerfile: app/Dockerfile.app
     hostname: app01
     network_mode: host  
     env_file:
@@ -51,7 +52,7 @@ services:
     container_name: app02
     build: 
       context: ./
-      dockerfile: Dockerfile.app
+      dockerfile: app/Dockerfile.app
     hostname: app02
     network_mode: host  
     env_file:
