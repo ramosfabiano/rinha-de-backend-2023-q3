@@ -26,7 +26,7 @@ async def hello():
 curl -v -X 'POST'   'http://localhost:8081/pessoas'   -H 'accept: application/json'   -H 'Content-Type: application/json'   -d '{
   "apelido": "snowj",
   "nome": "John Snow",
-  "nascimento": "2023-10-25",
+  "nascimento": "1986-12-26",
   "stack": ["C++", "Python"]
 }' | jq
 '''
@@ -39,7 +39,7 @@ async def cria_pessoa(pessoa: PessoaAddSchema):
         session.commit()
         session.refresh(p)
         session.close()
-        return JSONResponse(PessoaRepresentation(p), headers={'Location': f'/pessoas/{p.id}'})
+        return JSONResponse(status_code=201, content=PessoaRepresentation(p), headers={'Location': f'/pessoas/{p.id}'})
     except IntegrityError:
         return JSONResponse(status_code=422, content=ErrorRepresentation(422, 'Unprocessable entity/content'))
     except Exception as e:

@@ -8,10 +8,13 @@ from models.pessoa import Pessoa
 # schemas 
 #
 
+# os campos apelido, nome, nascimento estão como opcionais aqui no esquema da requisição
+# mas são obrigatórios no modelo. Isso é necessário para que o erro seja 422 , e não 400,
+# quando os mesmos forem enviados como nulos na requisição (conforme especificação do desafio...)
 class PessoaAddSchema(BaseModel):
-    apelido: constr(max_length=32)
-    nome : constr(max_length=100)
-    nascimento : date
+    apelido: Optional[constr(max_length=32)]
+    nome : Optional[constr(max_length=100)]
+    nascimento : Optional[date]
     stack : Optional[List[constr(max_length=32)]] = None
 
 class PessoaViewSchema(PessoaAddSchema):
