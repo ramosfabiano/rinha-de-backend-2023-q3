@@ -7,6 +7,7 @@ from typing import List
 import json
 from datetime import date
 import redis
+from cachetools import cached, TTLCache 
 
 from models import *
 from schemas import *
@@ -45,7 +46,7 @@ async def cria_pessoa(pessoa: PessoaAddSchema):
         session.refresh(p)
         session.close()
         response = PessoaRepresentation(p)
-        await redis_client.set(f'id:{p.id}', json.dumps(response)) 
+        redis_client.set(f'id:{p.id}', json.dumps(response)) 
         return JSONResponse(status_code=201, content=response, headers={'Location': f'/pessoas/{p.id}'})
     except IntegrityError:
         return JSONResponse(status_code=422, content=ErrorRepresentation(422, 'Unprocessable entity/content'))
@@ -58,7 +59,7 @@ curl -v -X 'GET' 'http://localhost:8081/pessoas/c25efe45-36f4-45a0-adbb-4093642c
 @app.get("/pessoas/{id}", response_model=PessoaViewSchema, status_code=200)
 async def retorna_pessoa(id: str):
     try:
-        cached_pessoa = await redis_client.get(f'id:{id}')
+        cached_pessoa = redis_client.get(f'id:{id}')
         if cached_pessoa is None: 
             session = Session()
             p = session.query(Pessoa).filter(Pessoa.id == id).first()
@@ -66,7 +67,7 @@ async def retorna_pessoa(id: str):
             if p is None:
                 return JSONResponse(status_code=404, content=ErrorRepresentation(404, 'Not found')) 
             response = PessoaRepresentation(p)
-            await redis_client.set(f'id:{id}', json.dumps(response)) 
+            redis_client.set(f'id:{id}', json.dumps(response)) 
         else:
             response = json.loads(cached_pessoa)
         return JSONResponse(response)   
