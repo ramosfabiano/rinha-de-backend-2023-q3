@@ -16,13 +16,30 @@ services:
       resources:
         limits:
           cpus: '0.5'
-          memory: '1.5GB'
+          memory: '1.3GB'
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       retries: 5
       start_period: 10s
       timeout: 5s
+
+  # cache
+  redis:
+    container_name: redis
+    image: docker.io/redis
+    hostname: redis
+    network_mode: host   
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/redis.conf:/etc/redis-custom.conf     
+    command: redis-server /etc/redis-custom.conf
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: '0.5GB'      
 
   # app instancia 01
   app01:
@@ -34,6 +51,7 @@ services:
     network_mode: host  
     env_file:
       - ./postgres/vars.env
+      - ./redis/vars.env
     environment:
       APP_PORT: 8080 
     ports:
@@ -41,11 +59,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy      
     deploy:
       resources:
         limits:
           cpus: '0.3'
-          memory: '0.5GB'
+          memory: '0.4GB'
 
   # app instancia 02
   app02:
@@ -57,6 +77,7 @@ services:
     network_mode: host  
     env_file:
       - ./postgres/vars.env
+      - ./redis/vars.env
     environment:
       APP_PORT: 8081
     ports:
@@ -64,11 +85,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy        
     deploy:
       resources:
         limits:
           cpus: '0.3'
-          memory: '0.5GB'
+          memory: '0.4GB'
 
   # balanceador de carga
   nginx:
@@ -88,5 +111,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.4'
-          memory: '0.5GB'
+          cpus: '0.3'
+          memory: '0.4GB'
+
+    
