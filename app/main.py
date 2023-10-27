@@ -82,15 +82,16 @@ curl -v -X 'GET' 'http://localhost:8081/pessoas?t=python' -H 'accept: applicatio
 @app.get("/pessoas", response_model=PessoaListViewSchema, status_code=200)
 async def busca_pessoas(t: str):
     try:
+        t = t.lower()
         session = Session()
-        p = session.query(Pessoa).filter(or_(Pessoa.nome.ilike(f'%{t}%'),Pessoa.apelido.ilike(f'%{t}%'),Pessoa.stack.ilike(f'%{t}%'))).limit(50).all()
+        #p = session.query(Pessoa).filter(or_(Pessoa.nome.ilike(f'%{t}%'),Pessoa.apelido.ilike(f'%{t}%'),Pessoa.stack.ilike(f'%{t}%'))).limit(50).all()
+        p = session.query(Pessoa).filter(Pessoa.termo.like(f'%{t}%')).limit(50).all()
         session.close()
         if p is None:
             p = []
         return JSONResponse(PessoaListRepresentation(p))
     except Exception as e:
         return JSONResponse(status_code=500, content=ErrorRepresentation(500, 'Internal server error'))
-
 
 '''
 curl -v -X 'GET' 'http://localhost:8081/contagem-pessoas' 
