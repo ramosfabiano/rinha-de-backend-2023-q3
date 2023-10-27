@@ -21,14 +21,20 @@ Os testes de estresse podem ser encontrados [aqui](https://github.com/zanfrances
 
 ## Execução da Aplicação
 
-A aplicação completa (incluindo todos os componentes) pode ser iniciada da seguinte forma:
+A aplicação completa (incluindo todos os componentes) pode ser iniciada da seguinte forma. Somente na primeira vez, construa as imagens:
 
 ```
 podman-compose build
+```
+
+Em seguida, inicie a aplicação:
+
+```
 podman-compose up
 ```
 
-Para terminar sua execução:
+
+Para terminar a execução:
 
 ```
 podman-compose down
