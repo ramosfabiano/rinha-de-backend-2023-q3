@@ -39,7 +39,7 @@ services:
       resources:
         limits:
           cpus: '0.15'
-          memory: '0.3GB'      
+          memory: '0.4GB'      
 
   # app instancia 01
   app01:
@@ -112,6 +112,6 @@ services:
       resources:
         limits:
           cpus: '0.15'
-          memory: '0.5GB'
+          memory: '0.4GB'
 
     

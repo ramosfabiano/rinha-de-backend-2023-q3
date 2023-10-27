@@ -15,9 +15,10 @@ Os testes de estresse podem ser encontrados [aqui](https://github.com/zanfrances
 ## Tech Stack
 
 - Postgres (banco de dados)
-- Python / FastAPI  (*framework*)
 - Nginx (balanceamento de carga)
-- Redis (*caching*)
+- Python / FastAPI  (*framework*)
+- cachetools (*cache* local)
+- Redis (*cache* remoto)
 
 ## Execução da Aplicação
 
