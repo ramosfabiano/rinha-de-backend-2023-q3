@@ -38,7 +38,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.25'
+          cpus: '0.2'
           memory: '0.2GB'      
 
   # app instancia 01

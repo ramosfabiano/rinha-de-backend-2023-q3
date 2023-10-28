@@ -145,7 +145,7 @@ mínimas (em termos de recursos) e ótimas (em termos de configuração específ
 Realizamos diversas interações deste processo até determinar as melhores configurações possíveis.
 
 Durante o processo, o mínimo de recursos que conseguimos utilizar para uma execução sem falhas foi
-2.2 vCPUs e 3.0 GiB de memória. Essa configuração está registrada no `docker-compose-minimum.yml`.
+2.15 vCPUs e 3.0 GiB de memória. Essa configuração está registrada no `docker-compose-minimum.yml`.
 
 ```
 ================================================================================
