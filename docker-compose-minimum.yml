@@ -64,7 +64,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: '0.45'
           memory: '0.6GB'
 
   # app instancia 02
@@ -90,7 +90,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: '0.45'
           memory: '0.6GB'
 
   # balanceador de carga
