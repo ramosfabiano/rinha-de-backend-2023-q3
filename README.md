@@ -145,27 +145,27 @@ mínimas (em termos de recursos) e ótimas (em termos de configuração específ
 Realizamos diversas interações deste processo até determinar as melhores configurações possíveis.
 
 Durante o processo, o mínimo de recursos que conseguimos utilizar para uma execução sem falhas foi
-2.15 vCPUs e 3.0 GiB de memória. Essa configuração está registrada no `docker-compose-minimum.yml`.
+2.1 vCPUs e 3.0 GiB de memória. Essa configuração está registrada no `docker-compose-minimum.yml`.
 
 ```
 ================================================================================
 ---- Global Information --------------------------------------------------------
-> request count                                     114952 (OK=114952 KO=0     )
+> request count                                     114956 (OK=114956 KO=0     )
 > min response time                                      0 (OK=0      KO=-     )
-> max response time                                  30322 (OK=30322  KO=-     )
-> mean response time                                  4770 (OK=4770   KO=-     )
-> std deviation                                       6876 (OK=6876   KO=-     )
-> response time 50th percentile                       1050 (OK=1049   KO=-     )
-> response time 75th percentile                       7171 (OK=7177   KO=-     )
-> response time 95th percentile                      20274 (OK=20273  KO=-     )
-> response time 99th percentile                      23716 (OK=23716  KO=-     )
-> mean requests/sec                                495.483 (OK=495.483 KO=-     )
+> max response time                                  33820 (OK=33820  KO=-     )
+> mean response time                                  5452 (OK=5452   KO=-     )
+> std deviation                                       7768 (OK=7768   KO=-     )
+> response time 50th percentile                       1113 (OK=1113   KO=-     )
+> response time 75th percentile                       8292 (OK=8300   KO=-     )
+> response time 95th percentile                      23119 (OK=23119  KO=-     )
+> response time 99th percentile                      27410 (OK=27410  KO=-     )
+> mean requests/sec                                487.102 (OK=487.102 KO=-     )
 ---- Response Time Distribution ------------------------------------------------
-> t < 800 ms                                         53480 ( 47%)
-> 800 ms <= t < 1200 ms                              10405 (  9%)
-> t >= 1200 ms                                       51067 ( 44%)
+> t < 800 ms                                         53279 ( 46%)
+> 800 ms <= t < 1200 ms                               5311 (  5%)
+> t >= 1200 ms                                       56366 ( 49%)
 > failed                                                 0 (  0%)
 ================================================================================
 ...
-46559
+46561
 ```
