@@ -176,6 +176,31 @@ class AppTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), 6)
 
+    def test_caching_after_read(self):        
+        for apelido, id in self.pessoas_dict.items():
+            response = self.client.get(f'/pessoas/{id}')
+            self.assertEqual(response.status_code, 200)
+            data = response.json()
+            self.assertEqual(data['apelido'], apelido)
+            self.assertEqual('cached' in data, False)
+        for apelido, id in self.pessoas_dict.items():
+            response = self.client.get(f'/pessoas/{id}')
+            self.assertEqual(response.status_code, 200)
+            data = response.json()
+            self.assertEqual(data['apelido'], apelido)
+            self.assertEqual(data['cached'], True)
+
+    def test_caching_after_write(self):
+        response = self.client.post('/pessoas/', json={'apelido': 'jdoe', 'nome': 'John Doe', 'nascimento': '1990-01-01', 'stack': ['C++', 'Java']})
+        self.assertEqual(response.status_code, 201)
+        data = response.json()
+        self.assertEqual('cached' in data, False)
+        id = data['id']
+        response = self.client.get(f'/pessoas/{id}')
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['cached'], True)
+
 if __name__ == "__main__":
     unittest.main()
 

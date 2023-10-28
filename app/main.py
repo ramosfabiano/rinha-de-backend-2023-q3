@@ -48,7 +48,7 @@ async def cria_pessoa(pessoa: PessoaAddSchema):
         session.refresh(p)
         session.close()
         response = PessoaRepresentation(p)
-        await cache.set(f'{p.id}', json.dumps(response)) 
+        await cache.set(f'{p.id}', response) 
         return JSONResponse(status_code=201, content=response, headers={'Location': f'/pessoas/{p.id}'})
     except IntegrityError:
         return JSONResponse(status_code=422, content=ErrorRepresentation(422, 'Unprocessable entity/content'))
@@ -61,17 +61,15 @@ curl -v -X 'GET' 'http://localhost:8081/pessoas/c25efe45-36f4-45a0-adbb-4093642c
 @app.get("/pessoas/{id}", response_model=PessoaViewSchema, status_code=200)
 async def retorna_pessoa(id: str):
     try:
-        cached_pessoa = await cache.get(f'{id}')
-        if cached_pessoa is None: 
+        response = await cache.get(f'{id}')
+        if response is None: 
             session = Session()
             p = session.query(Pessoa).filter(Pessoa.id == id).first()
             session.close()
             if p is None:
                 return JSONResponse(status_code=404, content=ErrorRepresentation(404, 'Not found')) 
             response = PessoaRepresentation(p)
-            await cache.set(f'{id}', json.dumps(response)) 
-        else:
-            response = json.loads(cached_pessoa)
+            await cache.set(f'{id}', response) 
         return JSONResponse(response)   
     except Exception as e:
         return JSONResponse(status_code=500, content=ErrorRepresentation(500, 'Internal server error'))
