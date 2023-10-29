@@ -20,6 +20,41 @@ Os testes de estresse podem ser encontrados [aqui](https://github.com/zanfrances
 - cachetools (*cache* local)
 - Redis (*cache* remoto)
 
+## Requisitos
+
+Desenvolvemos nossa solução na plataforma Ubuntu Linux 22.04 LTS, gerenciamento e execução de *containers* realizado através do *podman* 3.4.4 e do *podman-compose* 1.0.6.
+
+A instalação e configuração do *podman* e do *podman-compose* pode ser feita da seguinte forma:
+
+```bash
+# instala o podman
+sudo apt -y update
+sudo apt -y install podman
+
+# instala o podman-compose
+sudo apt -y install python3-pip
+pip install podman-compose
+
+# configura o podman para permitir o limite de cpus
+sudo mkdir -p /etc/systemd/system/user@.service.d
+sudo tee /etc/systemd/system/user@.service.d/delegate.conf << EOM
+[Service]
+Delegate=memory pids cpu cpuset
+EOM
+
+# reinicia o sistema para que a configuração tenha efeito
+sudo reboot
+```
+
+As demais dependências são *git*, *unzip* e *openjdk*, que podem ser instaladas assim:
+
+```bash
+sudo apt -y install git unzip openjdk-11-jdk
+```
+
+Por último, recomendamos desabilitar o uso de *hyperthreading*, para que a limitação de CPU definida aos *containers* seja verdadeira e determinística.
+
+
 ## Execução da Aplicação
 
 A aplicação completa (incluindo todos os componentes) pode ser iniciada da seguinte forma:
@@ -68,49 +103,70 @@ cd stress-test
 
 Os resultados, assim como os logs de execução, podem ser encontrados na pasta `stress-test/user-files/results`.
 
-### Resultados
+## Avaliação (AWS EC2)
 
-Realizamos a avaliação de nossa implementação na [AWS](https://aws.amazon.com/), de acordo com o proposto no desafio.
-A especificação da VM de referência pode ser encontrada [aqui](https://github.com/zanfranceschi/rinha-de-backend-2023-q3/blob/main/misc/lshw-aws).
+Realizamos a avaliação de nossa implementação na [AWS EC2](https://aws.amazon.com/), conforme proposto no desafio.
 
-A VM utilizada foi do tipo *t3a.xlarge*, com 4 vCPUs (Intel(R) Xeon(R) Platinum 8259CL CPU @ 2.50GHz),
-16Gib de memória e 30Gib de disco (gp3, *encrypted*, 5000 IOPS, 1000MB/s *throughput*).  
-Como sistema operacional, utilizamos a AMI Ubuntu Server 22.04 LTS (ami-0fc5d935ebf8bc3bc).
+A VM utilizada foi do tipo *c5d.2xlarge*, com 8 vCPUs (Intel(R) Xeon(R) Platinum 8275CL CPU @ 3.00GHz) e 16 Gib de memória. A instância inclui um disco SSD local de 200GB.
+
+Como sistema operacional, utilizamos a AMI Ubuntu Server 22.04 LTS (ami-0fc5d935ebf8bc3bc) para replicar nosso ambiente de desenvolvimento local.
 
 Primeiro, a configuração do ambiente. 
 
 ```bash
 $ ssh -i <chave_privada> ubuntu@<ip_publico_vm>
 
+# podman
 (aws)$ sudo apt -y update
-(aws)$ sudo apt -y install git podman python3-pip openjdk-8-jdk-headless unzip
+(aws)$ sudo apt -y install git podman python3-pip openjdk-11-jdk-headless unzip
 (aws)$ sudo pip install podman-compose
 
+# configura podman para permitir controlar uso parcial de recursos
 (aws)$ sudo mkdir -p /etc/systemd/system/user@.service.d
-(aws) $ sudo tee /etc/systemd/system/user@.service.d/delegate.conf << EOM
+(aws)$ sudo tee /etc/systemd/system/user@.service.d/delegate.conf << EOM
 [Service]
 Delegate=memory pids cpu cpuset
 EOM
- 
+
+# configura podman para armazenar imagens e overlays no SSD que montaremos à frente
+(aws)$ sudo tee /etc/containers/storage.conf << EOM
+[storage]
+driver = "overlay"
+rootless_storage_path = "/mnt/storage"
+EOM
+
 (aws)$ sudo reboot
 ```
 
 A seguir, a execução dos testes. Para isso, precisamos de dois terminais.
 
-No primeiro terminal, rodamos a aplicação. Note que desabilitamos duas vCPUs antes de iniciar o teste, evitando assim o compartilhamento de vCPUs em um mesmo *core*.
+No primeiro terminal, configuramos o sistema e rodamos a aplicação. Note que desabilitamos algumas vCPUs antes de iniciar o teste, evitando assim o compartilhamento de vCPUs em um mesmo *core*.
+Também preparamos o disco local SSD, que é efêmero (não retém seu conteúdo ou configuração após um boot).
 
 ```bash
 $ ssh -i <chave_privada> ubuntu@<ip_publico_vm>
 
-(aws)$ echo 0 | sudo tee /sys/devices/system/cpu/cpu2/online 
-(aws)$ echo 0 | sudo tee /sys/devices/system/cpu/cpu3/online 
+# desabilita compartilhamento de vcpus. Não sobrevive a reboots.
+(aws)$ echo 0 | sudo tee /sys/devices/system/cpu/cpu4/online 
+(aws)$ echo 0 | sudo tee /sys/devices/system/cpu/cpu5/online 
+(aws)$ echo 0 | sudo tee /sys/devices/system/cpu/cpu6/online 
+(aws)$ echo 0 | sudo tee /sys/devices/system/cpu/cpu7/online 
 (aws)$ cat /proc/cpuinfo | grep 'core id' 
     core id		: 0
     core id		: 1
+    core id		: 2
+    core id		: 3
 
+# configura o SSD. Não sobrevive a reboots.
+(aws) $ sudo mkfs.ext4 -m 0 -E lazy_itable_init=0,lazy_journal_init=0,discard /dev/nvme1n1
+(aws) $ sudo mount /dev/nvme1n1 /mnt
+(aws) $ sudo chown ubuntu.ubuntu /mnt/
+
+# executa a aplicação
+(aws)$ cd /mnt
 (aws)$ git clone https://github.com/ramosfabiano/rinha-de-backend-2023-q3.git
-(aws)$ cd  rinha-de-backend-2023-q3
-(aws)$ podman-compose -f docker-compose.yml up 
+(aws)$ cd rinha-de-backend-2023-q3
+(aws)$ podman-compose -f docker-compose.yml up --build 
 ```
 
 No segundo terminal, instalamos o gatling e disparamos o teste:
@@ -118,11 +174,18 @@ No segundo terminal, instalamos o gatling e disparamos o teste:
 ```bash
 $ ssh -i <chave_privada> ubuntu@<ip_publico_vm>
 
-(aws)$ cd rinha-de-backend-2023-q3/stress-test/
-(aws)$ mkdir -p ~/bin 
-(aws)$ ./install-gatling.sh ~/bin/
-(aws)$ ./run-test.sh ~/bin/gatling-3.9.5/
+(aws)$ cd /mnt/rinha-de-backend-2023-q3/stress-test/
+
+# instala o gatling
+(aws)$ ./install-gatling.sh ~/mnt/
+
+# roda o teste
+(aws)$ time ./run-test.sh ~/mnt/gatling-3.9.5/
 ```
+
+### Resultados
+
+Apresentamos aqui os resultados...
 
 ### Discussão
 
@@ -133,39 +196,14 @@ em produção, como por exemplo uso de SQL diretamente. Implementamos também te
 
 Outro ponto importante na implementação deste desafio foram a configurações específicas (nível de log, número máximo de conexão,
 tamanhos de buffer, etc.) dos serviços postgres, nginx e redis. Focamos em customizar as opções mais relevantes e 
-determinamos os valores adequados através de experimentação.
+determinamos os valores adequados através de pesquisa seguida de experimentação.
 
 Além disso, a distribuição ideal dos recursos entre os contêineres também foi um ponto crucial. Como metodologia, iniciamos 
-com um deployment sem grandes limitações de recursos, de forma que a aplicação conseguisse aguentar o teste de estresse e 
-terminar sem falhas com os 46k+ registros no banco.
+com uma composição com recursos abuntantes para cada unidade, de forma que a aplicação conseguisse aguentar o teste de estresse e 
+terminar sem falhas e com os 46k+ registros persistidos no banco.
 
 Uma vez determinada tal configuração, fomos reduzindo invidualmente os recursos do postgres,
 do redis e do nginx, nesta ordem, de forma a identificar onde estavam os gargalos e definir as configurações
 mínimas (em termos de recursos) e ótimas (em termos de configuração específicas) para cada serviço. 
 Realizamos diversas interações deste processo até determinar as melhores configurações possíveis.
 
-Durante o processo, o mínimo de recursos que conseguimos utilizar para uma execução sem falhas foi
-2.1 vCPUs e 3.0 GiB de memória. Essa configuração está registrada no `docker-compose-minimum.yml`.
-
-```
-================================================================================
----- Global Information --------------------------------------------------------
-> request count                                     114956 (OK=114956 KO=0     )
-> min response time                                      0 (OK=0      KO=-     )
-> max response time                                  33820 (OK=33820  KO=-     )
-> mean response time                                  5452 (OK=5452   KO=-     )
-> std deviation                                       7768 (OK=7768   KO=-     )
-> response time 50th percentile                       1113 (OK=1113   KO=-     )
-> response time 75th percentile                       8292 (OK=8300   KO=-     )
-> response time 95th percentile                      23119 (OK=23119  KO=-     )
-> response time 99th percentile                      27410 (OK=27410  KO=-     )
-> mean requests/sec                                487.102 (OK=487.102 KO=-     )
----- Response Time Distribution ------------------------------------------------
-> t < 800 ms                                         53279 ( 46%)
-> 800 ms <= t < 1200 ms                               5311 (  5%)
-> t >= 1200 ms                                       56366 ( 49%)
-> failed                                                 0 (  0%)
-================================================================================
-...
-46561
-```
