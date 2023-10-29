@@ -96,9 +96,6 @@ async def busca_pessoas(t: str):
         if p is None:
             p = []
         response = PessoaListRepresentation(p)
-        for r in response:
-            await cache_id.set(r['id'], r) 
-            await cache_apelido.set(r['apelido'], {'id': r['id']})
         return JSONResponse(response)
     except Exception as e:
         return JSONResponse(status_code=500, content=ErrorRepresentation(500, 'Internal server error'))
