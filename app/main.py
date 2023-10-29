@@ -105,7 +105,7 @@ async def busca_pessoas(t: str):
 curl -v -X 'GET' 'http://localhost:8081/contagem-pessoas' 
 '''
 @app.get("/contagem-pessoas", response_model=str, status_code=200)
-async def conta_pessoas(): 
+def conta_pessoas(): 
     try:
         session = Session()
         p = session.query(Pessoa).count()
