@@ -107,7 +107,7 @@ Os resultados, assim como os logs de execução, podem ser encontrados na pasta 
 
 Realizamos a avaliação de nossa implementação na [AWS EC2](https://aws.amazon.com/), conforme proposto no desafio.
 
-A VM utilizada foi do tipo *c5d.2xlarge*, com 8 vCPUs (Intel(R) Xeon(R) Platinum 8275CL CPU @ 3.00GHz) e 16 Gib de memória. A instância inclui um disco SSD local de 200GB.
+A VM utilizada foi do tipo *c5d.xlarge*, com 4 vCPUs (Intel(R) Xeon(R) Platinum 8275CL CPU @ 3.00GHz) e 8 Gib de memória. A instância inclui um disco SSD local de 100GB.
 
 Como sistema operacional, utilizamos a AMI Ubuntu Server 22.04 LTS (ami-0fc5d935ebf8bc3bc) para replicar nosso ambiente de desenvolvimento local.
 
@@ -140,22 +140,10 @@ EOM
 
 A seguir, a execução dos testes. Para isso, precisamos de dois terminais.
 
-No primeiro terminal, configuramos o sistema e rodamos a aplicação. Note que desabilitamos algumas vCPUs antes de iniciar o teste, evitando assim o compartilhamento de vCPUs em um mesmo *core*.
-Também preparamos o disco local SSD, que é efêmero (não retém seu conteúdo ou configuração após um boot).
+No primeiro terminal, configuramos o sistema e rodamos a aplicação. Note preparamos o disco local SSD, que é efêmero (não retém seu conteúdo ou configuração após um boot).
 
 ```bash
 $ ssh -i <chave_privada> ubuntu@<ip_publico_vm>
-
-# desabilita compartilhamento de vcpus. Não sobrevive a reboots.
-(aws)$ echo 0 | sudo tee /sys/devices/system/cpu/cpu4/online 
-(aws)$ echo 0 | sudo tee /sys/devices/system/cpu/cpu5/online 
-(aws)$ echo 0 | sudo tee /sys/devices/system/cpu/cpu6/online 
-(aws)$ echo 0 | sudo tee /sys/devices/system/cpu/cpu7/online 
-(aws)$ cat /proc/cpuinfo | grep 'core id' 
-    core id		: 0
-    core id		: 1
-    core id		: 2
-    core id		: 3
 
 # configura o SSD. Não sobrevive a reboots.
 (aws) $ sudo mkfs.ext4 -m 0 -E lazy_itable_init=0,lazy_journal_init=0,discard /dev/nvme1n1
@@ -190,6 +178,7 @@ Apresentamos aqui os resultados...
 ### Discussão
 
 - determinismo da avaliação: hyperthreading, EBS vs disco local
+  - assumimos que a máquina host possui pelo menos 2 cores (cpuset 0 e 1)
 
 - requests podem falhar?
 

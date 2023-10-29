@@ -16,6 +16,7 @@ services:
       resources:
         limits:
           cpus: '0.9'
+          cpuset: '0'
           memory: '1.4GB'
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
@@ -39,6 +40,7 @@ services:
       resources:
         limits:
           cpus: '0.2'
+          cpuset: '0'
           memory: '0.2GB'      
 
   # app instancia 01
@@ -64,8 +66,9 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.425'
-          memory: '0.55GB'
+          cpus: '0.45'
+          cpuset: '1'
+          memory: '0.6GB'
 
   # app instancia 02
   app02:
@@ -90,8 +93,9 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.425'
-          memory: '0.55GB'
+          cpus: '0.45'
+          cpuset: '1'
+          memory: '0.6GB'
 
   # balanceador de carga
   nginx:
@@ -112,6 +116,7 @@ services:
       resources:
         limits:
           cpus: '0.25'
+          cpuset: '1'
           memory: '0.3GB'
 
     
