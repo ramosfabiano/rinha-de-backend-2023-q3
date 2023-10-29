@@ -65,7 +65,7 @@ services:
       resources:
         limits:
           cpus: '0.425'
-          memory: '0.6GB'
+          memory: '0.55GB'
 
   # app instancia 02
   app02:
@@ -91,7 +91,7 @@ services:
       resources:
         limits:
           cpus: '0.425'
-          memory: '0.6GB'
+          memory: '0.55GB'
 
   # balanceador de carga
   nginx:
