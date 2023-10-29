@@ -14,8 +14,9 @@ from schemas import *
 # main app
 app = FastAPI()
 
-# cache
-cache = Cache(use_local_cache = True, use_remote_cache = True, local_cache_size = 10000)
+# caches
+cache_id = Cache(use_local_cache = True, use_remote_cache = True, local_cache_size = 10000)
+cache_apelido = Cache(use_local_cache = True, use_remote_cache = True, local_cache_size = 10000)
 
 # exception handler global para os casos de falha de validação do schema do request
 @app.exception_handler(RequestValidationError)
@@ -41,6 +42,9 @@ curl -v -X 'POST'   'http://localhost:8081/pessoas'   -H 'accept: application/js
 @app.post("/pessoas", response_model=PessoaViewSchema, status_code=201)
 async def cria_pessoa(pessoa: PessoaAddSchema):
     try:
+        p = await cache_apelido.get(pessoa.apelido)
+        if (p):
+            return JSONResponse(status_code=422, content=ErrorRepresentation(422, 'Unprocessable entity/content'))
         session = Session()
         p = Pessoa(pessoa.apelido, pessoa.nome, pessoa.nascimento, pessoa.stack)
         session.add(p)
@@ -48,11 +52,13 @@ async def cria_pessoa(pessoa: PessoaAddSchema):
         session.refresh(p)
         session.close()
         response = PessoaRepresentation(p)
-        await cache.set(f'{p.id}', response) 
+        await cache_id.set(p.id, response)
+        await cache_apelido.set(p.apelido, {'id': p.id})
         return JSONResponse(status_code=201, content=response, headers={'Location': f'/pessoas/{p.id}'})
     except IntegrityError:
         return JSONResponse(status_code=422, content=ErrorRepresentation(422, 'Unprocessable entity/content'))
     except Exception as e:
+        print(e)
         return JSONResponse(status_code=500, content=ErrorRepresentation(500, 'Internal server error'))
 
 '''
@@ -61,7 +67,7 @@ curl -v -X 'GET' 'http://localhost:8081/pessoas/c25efe45-36f4-45a0-adbb-4093642c
 @app.get("/pessoas/{id}", response_model=PessoaViewSchema, status_code=200)
 async def retorna_pessoa(id: str):
     try:
-        response = await cache.get(f'{id}')
+        response = await cache_id.get(id)
         if response is None: 
             session = Session()
             p = session.query(Pessoa).filter(Pessoa.id == id).first()
@@ -69,9 +75,11 @@ async def retorna_pessoa(id: str):
             if p is None:
                 return JSONResponse(status_code=404, content=ErrorRepresentation(404, 'Not found')) 
             response = PessoaRepresentation(p)
-            await cache.set(f'{id}', response) 
+            await cache_id.set(id, response) 
+            await cache_apelido.set(p.apelido, {'id': id})
         return JSONResponse(response)   
     except Exception as e:
+        print(e)
         return JSONResponse(status_code=500, content=ErrorRepresentation(500, 'Internal server error'))
 
 '''
@@ -87,7 +95,11 @@ async def busca_pessoas(t: str):
         session.close()
         if p is None:
             p = []
-        return JSONResponse(PessoaListRepresentation(p))
+        response = PessoaListRepresentation(p)
+        for r in response:
+            await cache_id.set(r['id'], r) 
+            await cache_apelido.set(r['apelido'], {'id': r['id']})
+        return JSONResponse(response)
     except Exception as e:
         return JSONResponse(status_code=500, content=ErrorRepresentation(500, 'Internal server error'))
 
