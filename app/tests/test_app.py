@@ -34,8 +34,8 @@ class AppTests(unittest.TestCase):
         session.query(Pessoa).delete()
         session.commit()
         session.close()
-        cache_id.reset()
-        cache_apelido.reset()
+        cache_id.clear()
+        cache_apelido.clear()
 
     def test_cria_pessoas_201(self):
         response = self.client.post('/pessoas/', json={'apelido': 'jdoe', 'nome': 'John Doe', 'nascimento': '1990-01-01', 'stack': ['C++', 'Java']})

@@ -5,12 +5,9 @@ import json
 
 class Cache:
 
-    _max_remote_dbs = 16 # redis limit
-    _remote_db_avail_list = [True for _ in range(_max_remote_dbs)]
-
-    def __init__(self, use_local_cache: bool, use_remote_cache: bool, local_cache_size: int):
+    def __init__(self, use_local_cache: bool, use_remote_cache: bool, local_cache_size: int, remote_db_index = 0):
         if (use_remote_cache):
-            self.__create_remote_cache() 
+            self.__create_remote_cache(remote_db_index) 
         else:
             self._remote_cache = None  
             self._using_remote_cache = False
@@ -32,19 +29,15 @@ class Cache:
         self._local_cache = None 
         self._using_local_cache = False
 
-    def __create_remote_cache(self):
-        try:
-            self._remote_cache_db_index = next(i for i, value in enumerate(self._remote_db_avail_list) if value)
-            self._remote_db_avail_list[self._remote_cache_db_index] = False
-        except StopIteration:
-            raise Exception('cannot create remote cache')
-        self._remote_cache = redis.Redis(host=os.environ['REDIS_HOST'], port=os.environ['REDIS_PORT'], password=os.environ['REDIS_PASSWORD'], db=self._remote_cache_db_index) 
+    def __create_remote_cache(self, remote_db_index: int):
+        if (not remote_db_index in range(0,16)): 
+            raise Exception('cannot create remote cache, invalid db index')
+        self._remote_cache = redis.Redis(host=os.environ['REDIS_HOST'], port=os.environ['REDIS_PORT'], password=os.environ['REDIS_PASSWORD'], db=remote_db_index) 
         self._using_remote_cache = True
 
     def __release_remote_cache(self):
         if (self._using_remote_cache):
-            self._remote_cache.flushdb()
-            self._remote_db_avail_list[self._remote_cache_db_index] = True
+            self._remote_cache = None
             self._using_remote_cache = False
 
     async def set(self, key: str, value: dict):    
@@ -80,10 +73,9 @@ class Cache:
                 return value_dict
         return None
 
-    def reset(self):
+    def clear(self):
         if (self._using_remote_cache):
-            self.__release_remote_cache()
-            self.__create_remote_cache()
+            self._remote_cache.flushdb()
         if (self._using_local_cache):
             cache_sz = self._local_cache.maxsize
             self.__release_local_cache()

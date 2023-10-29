@@ -15,8 +15,8 @@ from schemas import *
 app = FastAPI()
 
 # caches
-cache_id = Cache(use_local_cache = True, use_remote_cache = True, local_cache_size = 10000)
-cache_apelido = Cache(use_local_cache = True, use_remote_cache = True, local_cache_size = 10000)
+cache_id = Cache(use_local_cache = True, use_remote_cache = True, local_cache_size = 10000, remote_db_index = 0)
+cache_apelido = Cache(use_local_cache = True, use_remote_cache = True, local_cache_size = 10000, remote_db_index = 1)
 
 # exception handler global para os casos de falha de validação do schema do request
 @app.exception_handler(RequestValidationError)
@@ -98,6 +98,7 @@ async def busca_pessoas(t: str):
         response = PessoaListRepresentation(p)
         return JSONResponse(response)
     except Exception as e:
+        print(e)
         return JSONResponse(status_code=500, content=ErrorRepresentation(500, 'Internal server error'))
 
 '''
