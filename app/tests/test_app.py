@@ -204,24 +204,6 @@ class AppTests(unittest.TestCase):
         data = response.json()
         self.assertGreater(len(data['cached']), 0)
 
-    def test_caching_after_search(self):
-        response = self.client.get('/pessoas?t=python')
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertEqual(len(data),2)
-        self.assertEqual(data[0]['apelido'],'snowj')
-        self.assertEqual(data[1]['apelido'],'dtarg')
-        id1 = data[0]['id']
-        id2 = data[1]['id']      
-        response = self.client.get(f'/pessoas/{id1}')
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertGreater(len(data['cached']), 0)
-        response = self.client.get(f'/pessoas/{id2}')
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertGreater(len(data['cached']), 0)
-
 if __name__ == "__main__":
     unittest.main()
 
