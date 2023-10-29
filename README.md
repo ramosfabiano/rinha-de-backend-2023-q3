@@ -196,7 +196,7 @@ determinamos os valores adequados através de pesquisa seguida de experimentaç�
 Além disso, a distribuição ideal dos recursos entre os contêineres também foi um ponto crucial. Como metodologia, iniciamos 
 com uma composição com recursos abuntantes para cada unidade, de forma que a aplicação conseguisse aguentar o teste de estresse e 
 terminar sem falhas. Uma vez determinada tal configuração, fomos reduzindo invidualmente os recursos do postgres,
-do redis e do nginx, nesta ordem, de forma a identificar onde estavam os gargalos e definir as configurações
-mínimas (em termos de recursos) e ótimas (em termos de configuração específicas) para cada serviço. 
-Realizamos diversas interações deste processo até determinar as melhores configurações possíveis.
+do redis e do nginx, nesta ordem, de forma a identificar onde estavam os gargalos e (i) definir as configurações
+mínimas (em termos de recursos) e ótimas (em termos de configuração específicas) para cada serviço e (ii) implementar 
+otimizações na aplicação, caso necessário. Realizamos diversas interações deste processo.
 
