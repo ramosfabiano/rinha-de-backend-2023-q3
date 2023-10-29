@@ -189,20 +189,24 @@ Apresentamos aqui os resultados...
 
 ### Discussão
 
+- determinismo da avaliação: hyperthreading, EBS vs disco local
+
+- requests podem falhar?
+
+- modelo de consistência da API
+
 No que tange à implementação, levamos a cabo as otimizações mais comuns, como caching (local e remoto), uso de
 assincronismo, criação de um campo extra na tabela para acelerar as buscas por termo. Tentamos também
 manter o código razoavelmente limpo e organizado, e não lançar mão de otimizações inseguras que não seriam feitas
 em produção, como por exemplo uso de SQL diretamente. Implementamos também testes unitários para a API.
 
-Outro ponto importante na implementação deste desafio foram a configurações específicas (nível de log, número máximo de conexão,
-tamanhos de buffer, etc.) dos serviços postgres, nginx e redis. Focamos em customizar as opções mais relevantes e 
+Outro ponto importante na implementação deste desafio foram a configurações específicas dos serviços postgres, nginx e redis
+ (nível de log, número máximo de conexão, tamanhos de buffer, etc...), Focamos em customizar as opções mais relevantes e 
 determinamos os valores adequados através de pesquisa seguida de experimentação.
 
 Além disso, a distribuição ideal dos recursos entre os contêineres também foi um ponto crucial. Como metodologia, iniciamos 
 com uma composição com recursos abuntantes para cada unidade, de forma que a aplicação conseguisse aguentar o teste de estresse e 
-terminar sem falhas e com os 46k+ registros persistidos no banco.
-
-Uma vez determinada tal configuração, fomos reduzindo invidualmente os recursos do postgres,
+terminar sem falhas. Uma vez determinada tal configuração, fomos reduzindo invidualmente os recursos do postgres,
 do redis e do nginx, nesta ordem, de forma a identificar onde estavam os gargalos e definir as configurações
 mínimas (em termos de recursos) e ótimas (em termos de configuração específicas) para cada serviço. 
 Realizamos diversas interações deste processo até determinar as melhores configurações possíveis.
