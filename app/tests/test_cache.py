@@ -1,7 +1,8 @@
+import asyncio
 import unittest
 from cache import Cache
 
-class AppTests(unittest.TestCase):
+class CacheTests(unittest.IsolatedAsyncioTestCase):
 
     @classmethod
     def setUpClass(self):
@@ -33,81 +34,81 @@ class AppTests(unittest.TestCase):
         self.assertEqual(cache._local_cache, None)
         self.assertEqual(cache._remote_cache, None)   
 
-    def test_local_cache(self):
+    async def test_local_cache(self):
         cache = Cache(use_local_cache = True, use_remote_cache = False, local_cache_size = 3)
-        rc = cache._set("1", {"key1": "value1"})
+        rc = await cache.set("1", {"key1": "value1"})
         self.assertEqual(rc, True)
-        cached_value = cache._get("1")
+        cached_value = await cache.get("1")
         self.assertEqual(cached_value['cached'], 'local')
-        rc = cache._set("2", {"key2": "value2"})
+        rc = await cache.set("2", {"key2": "value2"})
         self.assertEqual(rc, True)
-        cached_value = cache._get("2")
+        cached_value = await cache.get("2")
         self.assertEqual(cached_value['cached'], 'local')
-        rc = cache._set("3", {"key3": "value3"})
+        rc = await cache.set("3", {"key3": "value3"})
         self.assertEqual(rc, True)
-        cached_value = cache._get("3")
+        cached_value = await cache.get("3")
         self.assertEqual(cached_value['cached'], 'local')
-        rc = cache._set("3", {"key3": "value3"})   # repeat
+        rc = await cache.set("3", {"key3": "value3"})   # repeat
         self.assertEqual(rc, True)
-        cached_value = cache._get("3")
+        cached_value = await cache.get("3")
         self.assertEqual(cached_value['cached'], 'local')
-        rc = cache._set("4", {"key4": "value4"})   
+        rc = await cache.set("4", {"key4": "value4"})   
         self.assertEqual(rc, True)
-        cached_value = cache._get("4")
+        cached_value = await cache.get("4")
         self.assertEqual(cached_value['cached'], 'local')    
-        cached_value = cache._get("1")             # evicted (FIFO)
+        cached_value = await cache.get("1")             # evicted (FIFO)
         self.assertEqual(cached_value, None)
 
-    def test_remote_cache(self):
+    async def test_remote_cache(self):
         cache = Cache(use_local_cache = False, use_remote_cache = True, local_cache_size = 3)
-        rc = cache._set("1", {"key1": "value1"})
+        rc = await cache.set("1", {"key1": "value1"})
         self.assertEqual(rc, True)
-        cached_value = cache._get("1")
+        cached_value = await cache.get("1")
         self.assertEqual(cached_value['cached'], 'remote')
-        rc = cache._set("2", {"key2": "value2"})
+        rc = await cache.set("2", {"key2": "value2"})
         self.assertEqual(rc, True)
-        cached_value = cache._get("2")
+        cached_value = await cache.get("2")
         self.assertEqual(cached_value['cached'], 'remote')
-        rc = cache._set("3", {"key3": "value3"})
+        rc = await cache.set("3", {"key3": "value3"})
         self.assertEqual(rc, True)
-        cached_value = cache._get("3")
+        cached_value = await cache.get("3")
         self.assertEqual(cached_value['cached'], 'remote')
-        rc = cache._set("3", {"key3": "value3"})   # repeat
+        rc = await cache.set("3", {"key3": "value3"})   # repeat
         self.assertEqual(rc, True)
-        cached_value = cache._get("3")
+        cached_value = await cache.get("3")
         self.assertEqual(cached_value['cached'], 'remote')
-        rc = cache._set("4", {"key4": "value4"})   
+        rc = await cache.set("4", {"key4": "value4"})   
         self.assertEqual(rc, True)
-        cached_value = cache._get("4")
+        cached_value = await cache.get("4")
         self.assertEqual(cached_value['cached'], 'remote')    
-        cached_value = cache._get("1")
+        cached_value = await cache.get("1")
         self.assertEqual(cached_value['cached'], 'remote')
 
-    def test_full_cache(self):
+    async def test_full_cache(self):
         cache = Cache(use_local_cache = True, use_remote_cache = True, local_cache_size = 3)
-        rc = cache._set("1", {"key1": "value1"})
+        rc = await cache.set("1", {"key1": "value1"})
         self.assertEqual(rc, True)
-        cached_value = cache._get("1")
+        cached_value = await cache.get("1")
         self.assertEqual(cached_value['cached'], 'local')
-        rc = cache._set("2", {"key2": "value2"})
+        rc = await cache.set("2", {"key2": "value2"})
         self.assertEqual(rc, True)
-        cached_value = cache._get("2")
+        cached_value = await cache.get("2")
         self.assertEqual(cached_value['cached'], 'local')
-        rc = cache._set("3", {"key3": "value3"})
+        rc = await cache.set("3", {"key3": "value3"})
         self.assertEqual(rc, True)
-        cached_value = cache._get("3")
+        cached_value = await cache.get("3")
         self.assertEqual(cached_value['cached'], 'local')
-        rc = cache._set("3", {"key3": "value3"})   # repeat
+        rc = await cache.set("3", {"key3": "value3"})   # repeat
         self.assertEqual(rc, True)
-        cached_value = cache._get("3")
+        cached_value = await cache.get("3")
         self.assertEqual(cached_value['cached'], 'local')
-        rc = cache._set("4", {"key4": "value4"})   
+        rc = await cache.set("4", {"key4": "value4"})   
         self.assertEqual(rc, True)
-        cached_value = cache._get("4")
+        cached_value = await cache.get("4")
         self.assertEqual(cached_value['cached'], 'local')    
-        cached_value = cache._get("1")            # evicted from local
+        cached_value = await cache.get("1")            # evicted from local
         self.assertEqual(cached_value['cached'], 'remote')
-        cached_value = cache._get("1")            # ... but reinserted
+        cached_value = await cache.get("1")            # ... but reinserted
         self.assertEqual(cached_value['cached'], 'local')
 
 if __name__ == "__main__":

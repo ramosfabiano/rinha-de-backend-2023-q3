@@ -47,7 +47,7 @@ class Cache:
             self._remote_db_avail_list[self._remote_cache_db_index] = True
             self._using_remote_cache = False
 
-    def _set(self, key: str, value: dict):    
+    async def set(self, key: str, value: dict):    
         if (key is None):
             return False
         value_str = json.dumps(value)
@@ -61,7 +61,7 @@ class Cache:
             cached = True
         return cached
 
-    def _get(self, key: str) -> dict:
+    async def get(self, key: str) -> dict:
         if (key is None):
             return None
         if (self._using_local_cache and (key in self._local_cache)):
@@ -88,9 +88,3 @@ class Cache:
             cache_sz = self._local_cache.maxsize
             self.__release_local_cache()
             self.__create_local_cache(cache_sz)
-
-    async def set(self, key: str, value: dict) -> bool: 
-        return self._set(key, value)
-
-    async def get(self, key: str) -> dict:
-        return self._get(key)
