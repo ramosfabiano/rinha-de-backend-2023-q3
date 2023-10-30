@@ -26,6 +26,12 @@ async def validation_exception_handler(request, exception):
 #
 # endpoints
 #
+#   Nota: 
+#   Os endpoints marcados como "async def" rodam sequencialmente no eventloop() da fastapi.
+#   Os endpoints marcados somente como "def" rodam no threadpool, logo são realmente assíncronos em relação aos demais marcados como async.
+#
+#   https://fastapi.tiangolo.com/async/
+#
 
 @app.get("/")
 async def hello():
