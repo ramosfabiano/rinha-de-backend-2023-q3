@@ -2,7 +2,7 @@
 
 Este pequeno projeto foi inspirado pelo desafio proposto na [Rinha de Backend 2023 Q3](https://github.com/zanfranceschi/rinha-de-backend-2023-q3).
 
-Cheguei atrasado na festa, mas achei interessante a idéia decidi fazer uma implementação como exercício.
+Chegamos atrasado na festa, mas a idéia é bastante interessante, então decidimos fazer uma implementação como exercício.
 
 Em resumo, o objetivo é desenvolver uma API simples, e sobreviver aos testes de estresse usando pouquíssimos recursos (1.5 vCPU e 3GB de RAM) em uma máquina AWS EC2.
 
@@ -90,7 +90,7 @@ $ podman-compose -f docker-compose-tests.yml down
 
 Originalmente disponíveis [aqui](https://github.com/zanfranceschi/rinha-de-backend-2023-q3/tree/main/stress-test), por motivos de conveniência reproduzimos o conteúdo dos testes de estresse na pasta `stress-test`.
 
-Para a execução dos testes, o primeiro passo é instalar a ferramenta *gatling* (caso já não esteja disponível), através do script auxiliar. O comando abaixo irá instalar o gatling no diretório `~/bin/gatling-3.9.5`.
+Para a execução dos testes, o primeiro passo é instalar a ferramenta *gatling* (caso já não esteja disponível), através do script auxiliar. O comando abaixo irá instalar o *gatling* no diretório `~/bin/gatling-3.9.5`.
 
 ```bash
 $ cd stress-test
@@ -104,7 +104,7 @@ $ cd stress-test
 $ ./run-test.sh ~/bin/gatling-3.9.5/
 ```
 
-Os resultados da execução, assim como os logs de execução, podem ser encontrados na pasta `stress-test/user-files/results`.
+Os resultados da execução, assim como os *logs* de execução, podem ser encontrados na pasta `stress-test/user-files/results`.
 
 ## Discussão
 
