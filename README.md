@@ -60,7 +60,7 @@ $ sudo apt -y install git unzip openjdk-11-jdk
 
 ## Execução da Aplicação
 
-$ A aplicação completa (incluindo todos os componentes) pode ser iniciada da seguinte forma:
+A aplicação completa (incluindo todos os componentes) pode ser iniciada da seguinte forma:
 
 ```bash
 $ podman-compose -f docker-compose.yml up --build
@@ -115,26 +115,26 @@ assincronismo, escritas em lote no banco, criação de um campo extra na tabela 
 Tentamos também manter o código razoavelmente limpo e organizado, e não lançar mão de otimizações inseguras que não seriam feitas
 em produção, como por exemplo uso de SQL *raw*. Implementamos também testes unitários para a API e para o cache.
 
-Logicamente a linguagem *python* não é a mais eficiente possível, mas acreditávamos que isso poderia ser viável num contexto
+Logicamente a linguagem *Python* não é a mais eficiente possível, mas acreditávamos que ela poderia ser viável num contexto
 de execução predominantemente *io-bound*. 
 
-Já outro ponto crucial foram as configurações específicas dos serviços *postgres*, *nginx* e *redis*  (nível de log, 
+Já outro ponto crucial foram as configurações específicas dos serviços *postgres*, *nginx* e *redis*  (nível de *log*, 
 número máximo de conexões, tamanhos de *buffers*, etc...). Focamos em customizar as opções mais relevantes e 
 determinamos os valores adequados através de pesquisa seguida de experimentação. Foi muito interessante notar o efeito
-destas configurações no uso de CPU e memória, e consequentemente no divisão dos (pouquíssimos) recursos entre os serviços.
+destas configurações sobre uso de CPU e memória, e consequentemente no divisão dos (pouquíssimos) recursos entre os serviços.
 O monitoramento da execução da aplicação usando o `podman  stats` foi crucial para o refinamento iterativo da distribuição dos recursos.
 
 Já sobre a avaliação (originalmente uma competição) alguns pontos pareciam não muito bem definidos (talvez tenham 
 sido esclarecidos por outros meios que não as instruções oficiais), como por exemplo:
-  * o uso de *hyperthreading*: as 1.5 unidades de vCPU rodariam por exemplo em um único *core* ou em *cores* separados? 
+  * o uso de SMT(*hyperthreading*): as 1.5 unidades de vCPU rodariam em um único *core* ou em *cores* separados? 
   * seria permitido o uso de afinidade via *cpuset*? 
-  * a configuração explicita de percentual de cpu era mandatório ou poderia-se ter N containeres limitados a uma mesma vCPU, contando assim como 1.0 unidade de recurso vCPU? Isso permitiria uma alocação mais "dinâmica" do recurso CPU.
+  * a configuração explicita do percentual de cpu era mandatório ou poderia-se ter N contêineres limitados a uma mesma vCPU, contando assim como 1.0 unidade de recurso vCPU? Isso permitiria uma alocação dinâmica do recurso CPU.
   * ao realizar a avaliação numa instância EC2, a mesma usaria EBS ou SSD local como *storage*? No caso de EBS, qual configuração? A eficiência do armazenamento afeta diretamente a dinãmica de execução e com isso a distribiução dos recursos entre os serviços.
-  * qual exatamente seria a CPU usada? Analogamente a questão do armazenamento, a velocidade relativa da CPU em relação às operações de I/O também afeta a distribuição ótima dos recursos.
+  * qual exatamente seria a CPU usada? Analogamente à questão do armazenamento, a velocidade relativa da CPU em relação às operações de I/O também afeta a distribuição ótima dos recursos.
   * qual o modelo de consistência que a API deveria oferecer? 
-  * todas as requisições deveriam ser atendidas com sucesso ou era permitido que algumas falhassem (código de retorno 5xx)?
+  * todas as requisições deveriam ser atendidas com sucesso ou seria permitido que algumas falhassem (código de retorno 5xx)?
 
-Neste sentido, sentindo-se livre até por estar fazendo o desafio em caráter não-competitivo, decidimos livremente sobre cada uma destas questões.
+Neste sentido, até por nossa implementação ter caráter não-competitivo, decidimos livremente sobre cada uma destas questões.
 
 
 ## Avaliação - AWS EC2
@@ -205,7 +205,8 @@ EOM
 
 A seguir, a execução dos testes. Para isso, precisamos de dois terminais.
 
-No primeiro terminal, configuramos o sistema e rodamos a aplicação. Note preparamos o disco local SSD, que é efêmero (não retém seu conteúdo ou configuração após um boot).
+No primeiro terminal, configuramos o sistema e rodamos a aplicação. Note que preparamos o disco local SSD, que é efêmero (não retém seu conteúdo ou configuração após um boot).
+Desabilitamos também o SMT neste momento.
 
 ```bash
 $ ssh -i <chave_privada> ubuntu@<ip_publico_vm>
@@ -230,7 +231,7 @@ core id		: 3
 (aws)$ podman-compose -f docker-compose.yml up --build 
 ```
 
-No segundo terminal, instalamos o gatling e disparamos o teste:
+No segundo terminal, instalamos o *gatling* e disparamos o teste:
 
 ```bash
 $ ssh -i <chave_privada> ubuntu@<ip_publico_vm>
@@ -248,7 +249,7 @@ $ ssh -i <chave_privada> ubuntu@<ip_publico_vm>
 
 Apresentamos aqui os resultados da execução de nossa aplicação na AWS EC2.
 
-Conseguimos uma execução sem falhas, indicando que nossas soluções de otimização e configuração dos serviços foi bem sucedida.
+Conseguimos uma execução sem falhas, indicando que nossas soluções de otimização e refinamento da configuração dos serviços foi bem sucedida.
 
 ![resumo-texto](https://github.com/ramosfabiano/rinha-de-backend-2023-q3/blob/main/resultados-ec2/resumo-texto.png)
 
