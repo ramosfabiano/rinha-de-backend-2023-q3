@@ -2,9 +2,9 @@
 
 Este pequeno projeto foi inspirado pelo desafio proposto na [Rinha de Backend 2023 Q3](https://github.com/zanfranceschi/rinha-de-backend-2023-q3).
 
-Obviamente cheguei atrasado na festa, mas achei interessante decidi fazer minha implementação como exercício.
+Obviamente cheguei atrasado na festa, mas achei interessante a idéia decidi fazer uma implementação como exercício.
 
-O foco do desafio não está no desenvolvimento da API em si, mas conseguir o melhor desempenho possível nos testes de estresse usando pouquíssimos recursos (1.5 vCPU e 3GB de RAM). 
+O foco aqui não está no desenvolvimento da API em si, mas conseguir o melhor desempenho possível nos testes de estresse usando pouquíssimos recursos (1.5 vCPU e 3GB de RAM) en uma máquina AWS/EC2.
 
 O desafio também especifica o deploy via *docker-compose*, com duas instâncias para a API, uma instância para o *load balancer* e outra para o banco de dados (Postgres, MySQL, ou MongoDB).
 
@@ -16,13 +16,13 @@ Os testes de estresse podem ser encontrados [aqui](https://github.com/zanfrances
 
 - Postgres (banco de dados)
 - Nginx (balanceamento de carga)
-- Python / FastAPI  (*framework*)
+- Python / FastAPI  (*framework* de desenvolvimento)
 - cachetools (*cache* local)
 - Redis (*cache* remoto)
 
 ## Requisitos
 
-Desenvolvemos nossa solução na plataforma Ubuntu Linux 22.04 LTS, gerenciamento e execução de *containers* realizado através do *podman* 3.4.4 e do *podman-compose* 1.0.6.
+Desenvolvemos nossa solução sobre a plataforma Ubuntu Linux 22.04 LTS, com gerenciamento e execução de *containers* realizado através do *podman* 3.4.4 e do *podman-compose* 1.0.6.
 
 A instalação e configuração do *podman* e do *podman-compose* pode ser feita da seguinte forma:
 
@@ -35,7 +35,7 @@ sudo apt -y install podman
 sudo apt -y install python3-pip
 pip install podman-compose
 
-# configura o podman para permitir o limite de cpus
+# configura o podman para permitir o limite de uso das cpus
 sudo mkdir -p /etc/systemd/system/user@.service.d
 sudo tee /etc/systemd/system/user@.service.d/delegate.conf << EOM
 [Service]
@@ -51,9 +51,6 @@ As demais dependências são *git*, *unzip* e *openjdk*, que podem ser instalada
 ```bash
 sudo apt -y install git unzip openjdk-11-jdk
 ```
-
-Por último, recomendamos desabilitar o uso de *hyperthreading*, para que a limitação de CPU definida aos *containers* seja verdadeira e determinística.
-
 
 ## Execução da Aplicação
 
@@ -85,31 +82,93 @@ podman-compose -f docker-compose-tests.yml down
 
 ## Execução dos Testes de Estresse
 
-Originalmente disponíveis [aqui](https://github.com/zanfranceschi/rinha-de-backend-2023-q3/tree/main/stress-test), por motivos de conveniência reproduzimos o conteúdo dos testes na pasta `stress-test`.
+Originalmente disponíveis [aqui](https://github.com/zanfranceschi/rinha-de-backend-2023-q3/tree/main/stress-test), por motivos de conveniência reproduzimos o conteúdo dos testes de estresse na pasta `stress-test`.
 
-O primeiro passo é instalar a ferramenta *gatling* (caso já não esteja disponível), através do script auxiliar. O comando abaixo irá instalar o gatling no diretório `~/bin/gatling-3.9.5`.
+Para a execução dos testes, o primeiro passo é instalar a ferramenta *gatling* (caso já não esteja disponível), através do script auxiliar. O comando abaixo irá instalar o gatling no diretório `~/bin/gatling-3.9.5`.
 
 ```bash
 cd stress-test
 ./install-gatling.sh ~/bin/
 ```
 
-O passo seguinte é a execução dos testes em si, conforme mostrado. Antes de executar os testes, inicie a aplicação conforme explicado [anteriormente](#execu%C3%A7%C3%A3o-da-aplica%C3%A7%C3%A3o).
+O passo seguinte é a execução dos testes em si, conforme mostrado. Antes de executar os testes, inicie a aplicação conforme explicado anteriormente.
 
 ```bash
 cd stress-test
 ./run-test.sh ~/bin/gatling-3.9.5/
 ```
 
-Os resultados, assim como os logs de execução, podem ser encontrados na pasta `stress-test/user-files/results`.
+Os resultados da execução, assim como os logs de execução, podem ser encontrados na pasta `stress-test/user-files/results`.
 
-## Avaliação (AWS EC2)
+## Discussão
+
+Agora algumas considerações sobre o desafio e sobre a forma de avaliação.
+
+No que tange à implementação, levamos a cabo as otimizações típicas, como *caching* (local e remoto), uso de
+assincronismo, escritas em lote no banco, criação de um campo extra na tabela para acelerar as buscas.
+Tentamos também manter o código razoavelmente limpo e organizado, e não lançar mão de otimizações inseguras que não seriam feitas
+em produção, como por exemplo uso de SQL *raw*. Implementamos também testes unitários para a API e para o cache.
+
+Logicamente a linguagem *python* não é a mais eficiente possível, mas acreditávamos que isso poderia ser viável num contexto
+de execução predominantemente *io-bound*. 
+
+Já outro ponto crucial foram as configurações específicas dos serviços *postgres*, *nginx* e *redis*  (nível de log, 
+número máximo de conexões, tamanhos de *buffers*, etc...). Focamos em customizar as opções mais relevantes e 
+determinamos os valores adequados através de pesquisa seguida de experimentação. Foi muito interessante notar o efeito
+destas configurações no uso de CPU e memória, e consequentemente no divisão dos (pouquíssimos) recursos entre os serviços.
+O monitoramento da execução da aplicação usando o `podman  stats` foi crucial para o refinamento iterativo da distribuição dos recursos.
+
+Já sobre a avaliação (originalmente uma competição) alguns pontos pareciam não muito bem definidos (talvez tenham 
+sido esclarecidos por outros meios que não as instruções oficiais), como por exemplo:
+  * o uso de *hyperthreading*: as 1.5 unidades de vCPU rodariam por exemplo em um único *core* ou em *cores* separados? 
+  * seria permitido o uso de afinidade via *cpuset*? 
+  * a configuração explicita de percentual de cpu era mandatório ou poderia-se ter N containeres limitados a uma mesma vCPU, contando assim como 1.0 unidade de recurso vCPU? Isso permitiria uma alocação mais "dinâmica" do recurso CPU.
+  * ao realizar a avaliação numa instância EC2, a mesma usaria EBS ou SSD local como *storage*? No caso de EBS, qual configuração? A eficiência do armazenamento afeta diretamente a dinãmica de execução e com isso a distribiução dos recursos entre os serviços.
+  * qual exatamente seria a CPU usada? Analogamente a questão do armazenamento, a velocidade relativa da CPU em relação às operações de I/O também afeta a distribuição ótima dos recursos.
+  * qual o modelo de consistência que a API deveria oferecer? 
+  * todas as requisições deveriam ser atendidas com sucesso ou era permitido que algumas falhassem (código de retorno 5xx)?
+
+Neste sentido, sentindo-se livre até por estar fazendo o desafio em caráter não-competitivo, decidimos livremente sobre cada uma destas questões.
+
+
+## Avaliação - AWS EC2
 
 Realizamos a avaliação de nossa implementação na [AWS EC2](https://aws.amazon.com/), conforme proposto no desafio.
 
-A VM utilizada foi do tipo *c5d.xlarge*, com 4 vCPUs (Intel(R) Xeon(R) Platinum 8275CL CPU @ 3.00GHz) e 8 Gib de memória. A instância inclui um disco SSD local de 100GB.
+A VM utilizada foi do tipo *c5d.2xlarge*, com 8 vCPUs, 16 Gib de memória, e disco SSD local. Como sistema operacional, utilizamos a AMI Ubuntu Server 22.04 LTS (ami-0fc5d935ebf8bc3bc).
 
-Como sistema operacional, utilizamos a AMI Ubuntu Server 22.04 LTS (ami-0fc5d935ebf8bc3bc) para replicar nosso ambiente de desenvolvimento local.
+Nossa motivação para estas escolhas foi tentar replicar ao máximo nosso ambiente de desenvolvimento local para evitar um novo ciclo de refinamento da distribuição de recursos.
+
+A seguir a saída do comando `sudo lshw -short -sanitize -notime -c system,bus,memory,processor,bridge,storage,disk,volume,network`.
+
+```
+H/W path      Device           Class          Description
+=========================================================
+                               system         c5d.xlarge
+/0                             bus            Motherboard
+/0/0                           memory         64KiB BIOS
+/0/4                           processor      Intel(R) Xeon(R) Platinum 8275CL CPU @ 3.00GHz
+/0/4/5                         memory         1536KiB L1 cache
+/0/4/6                         memory         24MiB L2 cache
+/0/4/7                         memory         35MiB L3 cache
+/0/8                           memory         8GiB System Memory
+/0/8/0                         memory         8GiB DIMM DDR4 Static column Pseudo-static Synchronous Window DRAM 2933 MH
+/0/100                         bridge         440FX - 82441FX PMC [Natoma]
+/0/100/1                       bridge         82371SB PIIX3 ISA [Natoma/Triton II]
+/0/100/1/0                     system         PnP device PNP0b00
+/0/100/4      /dev/nvme0       storage        Amazon Elastic Block Store
+/0/100/4/0    hwmon1           disk           NVMe disk
+/0/100/4/2    /dev/ng0n1       disk           NVMe disk
+/0/100/4/1    /dev/nvme0n1     disk           8589MB NVMe disk
+/0/100/4/1/1  /dev/nvme0n1p1   volume         8080MiB EXT4 volume
+/0/100/4/1/e  /dev/nvme0n1p14  volume         4095KiB BIOS Boot partition
+/0/100/4/1/f  /dev/nvme0n1p15  volume         105MiB Windows FAT volume
+/0/100/5      ens5             network        Elastic Network Adapter (ENA)
+/0/100/1f     /dev/nvme1       storage        Amazon EC2 NVMe Instance Storage
+/0/100/1f/0   hwmon0           disk           NVMe disk
+/0/100/1f/2   /dev/ng1n1       disk           NVMe disk
+/0/100/1f/1   /dev/nvme1n1     disk           100GB NVMe disk
+```
 
 Primeiro, a configuração do ambiente. 
 
@@ -121,14 +180,14 @@ $ ssh -i <chave_privada> ubuntu@<ip_publico_vm>
 (aws)$ sudo apt -y install git podman python3-pip openjdk-11-jdk-headless unzip
 (aws)$ sudo pip install podman-compose
 
-# configura podman para permitir controlar uso parcial de recursos
+# configura os recursos que o podman pode gerenciar
 (aws)$ sudo mkdir -p /etc/systemd/system/user@.service.d
 (aws)$ sudo tee /etc/systemd/system/user@.service.d/delegate.conf << EOM
 [Service]
 Delegate=memory pids cpu cpuset
 EOM
 
-# configura podman para armazenar imagens e overlays no SSD que montaremos à frente
+# configura podman para armazenar imagens e overlays no SSD que montaremos a seguir
 (aws)$ sudo tee /etc/containers/storage.conf << EOM
 [storage]
 driver = "overlay"
@@ -150,6 +209,14 @@ $ ssh -i <chave_privada> ubuntu@<ip_publico_vm>
 (aws) $ sudo mount /dev/nvme1n1 /mnt
 (aws) $ sudo chown ubuntu.ubuntu /mnt/
 
+# desabilita SMT. Não sobrevive a reboots.
+(aws)$ echo 0 | sudo tee /sys/devices/system/cpu/cpu{4,5,6,7}/online 
+(aws)$ cat /proc/cpuinfo | grep 'core id' 
+core id		: 0
+core id		: 1
+core id		: 2
+core id		: 3
+
 # executa a aplicação
 (aws)$ cd /mnt
 (aws)$ git clone https://github.com/ramosfabiano/rinha-de-backend-2023-q3.git
@@ -165,34 +232,26 @@ $ ssh -i <chave_privada> ubuntu@<ip_publico_vm>
 (aws)$ cd /mnt/rinha-de-backend-2023-q3/stress-test/
 
 # instala o gatling
-(aws)$ ./install-gatling.sh ~/mnt/
+(aws)$ ./install-gatling.sh /mnt/
 
 # roda o teste
-(aws)$ time ./run-test.sh ~/mnt/gatling-3.9.5/
+(aws)$ time ./run-test.sh /mnt/gatling-3.9.5/
 ```
 
-### Resultados
+### Resultados - AWS EC2
 
-Apresentamos aqui os resultados...
+Apresentamos aqui os resultados da execução de nossa aplicação na AWS EC2.
 
-### Discussão
+Conseguimos uma execução sem falhas, indicando que nossas soluções de otimização e configuração dos serviços foi bem sucedida.
 
-- determinismo da avaliação: SMT(hyperthreading), cpuset vs %cpu, EBS vs disco local
+![resumo-texto](https://github.com/ramosfabiano/rinha-de-backend-2023-q3/blob/main/resultados-ec2/resumo-texto.png)
 
-  
-- requests podem falhar?
+![resumo](https://github.com/ramosfabiano/rinha-de-backend-2023-q3/blob/main/resultados-ec2/resumo.png)
 
-- modelo de consistência da API
+![grafico1](https://github.com/ramosfabiano/rinha-de-backend-2023-q3/blob/main/resultados-ec2/performance.png)
 
-No que tange à implementação, levamos a cabo as otimizações mais comuns, como caching (local e remoto), uso de
-assincronismo, criação de um campo extra na tabela para acelerar as buscas por termo. Tentamos também
-manter o código razoavelmente limpo e organizado, e não lançar mão de otimizações inseguras que não seriam feitas
-em produção, como por exemplo uso de SQL diretamente. Implementamos também testes unitários para a API.
 
-Outro ponto importante na implementação deste desafio foram a configurações específicas dos serviços postgres, nginx e redis
- (nível de log, número máximo de conexão, tamanhos de buffer, etc...), Focamos em customizar as opções mais relevantes e 
-determinamos os valores adequados através de pesquisa seguida de experimentação.
-
-Além disso, a distribuição ideal dos recursos entre os contêineres também foi um ponto crucial. Como metodologia
-`podman  stats` `monitor.py`
-
+Como referẽncia, um total de xxxx registros se encontravam persistidos no banco após a finalização dos testes.
+Esses números devem ser interpretados cuidadosamente se comparados aos resultados dos participantes do desafio, pois o
+ambiente e condições de execução foi muito provavelmente distinto. No entanto, eles nos confirmam que nosso esforço
+foi eficaz e na direção correta.
