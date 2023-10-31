@@ -2,7 +2,7 @@
 
 Este pequeno projeto foi inspirado pelo desafio proposto na [Rinha de Backend 2023 Q3](https://github.com/zanfranceschi/rinha-de-backend-2023-q3).
 
-Chegamos atrasado na festa, mas como a idéia era bastante interessante, então decidimos fazer uma implementação como exercício.
+Chegamos atrasado na festa, mas como a idéia era bastante interessante, decidimos fazer a implementação como exercício.
 
 Em resumo, o objetivo é desenvolver uma API simples, e sobreviver aos testes de estresse usando pouquíssimos recursos (1.5 vCPU e 3GB de RAM) em uma máquina AWS EC2.
 
