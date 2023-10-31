@@ -3,7 +3,7 @@ import time
 import json
 import matplotlib.pyplot as plt
 
-peek_interval = 3
+peek_interval = 5
 
 def collect_stats() -> dict:
     print(f"Monitoring started. Collecting stats every {peek_interval}s. Press Ctrl+C to abort.")
@@ -14,7 +14,9 @@ def collect_stats() -> dict:
             stats = json.loads(output)
             for s in stats:
                 container_name = s['name']
-                container_stats = {key: s[key] for key in ['cpu_percent', 'mem_usage']  }
+                container_stats = {}
+                container_stats['cpu_percent'] = s['cpu_percent'].split('%')[0]
+                container_stats['mem_usage'] = s['mem_usage'].split('MB')[0]
                 if container_name in all_stats:
                     all_stats[container_name].append(container_stats)
                 else:
@@ -33,10 +35,8 @@ def write_stats(stats: dict):
             max_cpu_percent = 0.0
             max_mem_usage = 0.0
             for item in entries:
-                cpu_percent = float(item['cpu_percent'].rstrip('%'))
-                mem_usage = float(item['mem_usage'].split("MB")[0])
-                max_cpu_percent = max(max_cpu_percent, cpu_percent)
-                max_mem_usage = max(max_mem_usage, mem_usage)
+                max_cpu_percent = max(max_cpu_percent, float(item['cpu_percent']))
+                max_mem_usage = max(max_mem_usage, float(item['mem_usage']))
             summary[key] = {
                 'max_cpu_percent': f'{max_cpu_percent}%',
                 'max_mem_usage': f'{max_mem_usage}MB'
@@ -49,8 +49,8 @@ def plot_stats(stats: dict):
     mem_usage_data = []
     # prepare data
     for key, entries in stats.items():
-        cpu_percent_data.append([float(item['cpu_percent'].strip('%')) for item in entries])
-        mem_usage_data.append([float(item['mem_usage'].split('MB')[0]) for item in entries])
+        cpu_percent_data.append([float(item['cpu_percent']) for item in entries])
+        mem_usage_data.append([float(item['mem_usage']) for item in entries])
     plt.figure(figsize=(12, 6))
     # cpu
     plt.subplot(1, 2, 1)
