@@ -2,68 +2,74 @@
 
 Este pequeno projeto foi inspirado pelo desafio proposto na [Rinha de Backend 2023 Q3](https://github.com/zanfranceschi/rinha-de-backend-2023-q3).
 
-Obviamente cheguei atrasado na festa, mas achei interessante a idéia decidi fazer uma implementação como exercício.
+Cheguei atrasado na festa, mas achei interessante a idéia decidi fazer uma implementação como exercício.
 
-O foco aqui não está no desenvolvimento da API em si, mas conseguir o melhor desempenho possível nos testes de estresse usando pouquíssimos recursos (1.5 vCPU e 3GB de RAM) en uma máquina AWS/EC2.
+Em resumo, o objetivo é desenvolver uma API simples, e sobreviver aos testes de estresse usando pouquíssimos recursos (1.5 vCPU e 3GB de RAM) em uma máquina AWS EC2.
 
-O desafio também especifica o deploy via *docker-compose*, com duas instâncias para a API, uma instância para o *load balancer* e outra para o banco de dados (Postgres, MySQL, ou MongoDB).
+O desafio especifica o deploy via *docker-compose*, com duas instâncias para a API, uma instância para o *load balancer* e outra para o banco de dados (Postgres, MySQL, ou MongoDB).
 
 A especificação completa pode ser encontrada [aqui](https://github.com/zanfranceschi/rinha-de-backend-2023-q3/blob/main/INSTRUCOES.md). 
-
-Os testes de estresse podem ser encontrados [aqui](https://github.com/zanfranceschi/rinha-de-backend-2023-q3/tree/main/stress-test).
 
 ## Tech Stack
 
 - Postgres (banco de dados)
 - Nginx (balanceamento de carga)
 - Python / FastAPI  (*framework* de desenvolvimento)
-- cachetools (*cache* local)
+- Cachetools (*cache* local)
 - Redis (*cache* remoto)
 
 ## Requisitos
 
-Desenvolvemos nossa solução sobre a plataforma Ubuntu Linux 22.04 LTS, com gerenciamento e execução de *containers* realizado através do *podman* 3.4.4 e do *podman-compose* 1.0.6.
+Desenvolvemos nossa solução sobre a plataforma Ubuntu Linux 22.04 LTS, com gerenciamento e execução de *containers* realizado através do *podman* e do *podman-compose*.
 
 A instalação e configuração do *podman* e do *podman-compose* pode ser feita da seguinte forma:
 
 ```bash
 # instala o podman
-sudo apt -y update
-sudo apt -y install podman
+$ sudo apt -y update
+$ sudo apt -y install podman
 
 # instala o podman-compose
-sudo apt -y install python3-pip
-pip install podman-compose
+$ sudo apt -y install python3-pip
+$ pip install podman-compose
+
+$ podman-compose --version
+podman-compose version: 1.0.6
+['podman', '--version', '']
+using podman version: 3.4.4
+podman-compose version 1.0.6
+podman --version 
+podman version 3.4.4
 
 # configura o podman para permitir o limite de uso das cpus
-sudo mkdir -p /etc/systemd/system/user@.service.d
-sudo tee /etc/systemd/system/user@.service.d/delegate.conf << EOM
+$ sudo mkdir -p /etc/systemd/system/user@.service.d
+$ sudo tee /etc/systemd/system/user@.service.d/delegate.conf << EOM
 [Service]
 Delegate=memory pids cpu cpuset
 EOM
 
 # reinicia o sistema para que a configuração tenha efeito
-sudo reboot
+$ sudo reboot
 ```
 
 As demais dependências são *git*, *unzip* e *openjdk*, que podem ser instaladas assim:
 
 ```bash
-sudo apt -y install git unzip openjdk-11-jdk
+$ sudo apt -y install git unzip openjdk-11-jdk
 ```
 
 ## Execução da Aplicação
 
-A aplicação completa (incluindo todos os componentes) pode ser iniciada da seguinte forma:
+$ A aplicação completa (incluindo todos os componentes) pode ser iniciada da seguinte forma:
 
 ```bash
-podman-compose -f docker-compose.yml up --build
+$ podman-compose -f docker-compose.yml up --build
 ```
 
 Para terminar a execução:
 
 ```bash
-podman-compose -f docker-compose.yml down
+$ podman-compose -f docker-compose.yml down
 ```
 
 ## Execução dos Testes Unitários
@@ -71,13 +77,13 @@ podman-compose -f docker-compose.yml down
 Os testes unitários podem ser executados da seguinte forma:
 
 ```bash
-podman-compose -f docker-compose-tests.yml up --build
+$ podman-compose -f docker-compose-tests.yml up --build
 ```
 
 Para terminar sua execução:
 
 ```bash
-podman-compose -f docker-compose-tests.yml down
+$ podman-compose -f docker-compose-tests.yml down
 ```
 
 ## Execução dos Testes de Estresse
@@ -87,15 +93,15 @@ Originalmente disponíveis [aqui](https://github.com/zanfranceschi/rinha-de-back
 Para a execução dos testes, o primeiro passo é instalar a ferramenta *gatling* (caso já não esteja disponível), através do script auxiliar. O comando abaixo irá instalar o gatling no diretório `~/bin/gatling-3.9.5`.
 
 ```bash
-cd stress-test
-./install-gatling.sh ~/bin/
+$ cd stress-test
+$ ./install-gatling.sh ~/bin/
 ```
 
 O passo seguinte é a execução dos testes em si, conforme mostrado. Antes de executar os testes, inicie a aplicação conforme explicado anteriormente.
 
 ```bash
-cd stress-test
-./run-test.sh ~/bin/gatling-3.9.5/
+$ cd stress-test
+$ ./run-test.sh ~/bin/gatling-3.9.5/
 ```
 
 Os resultados da execução, assim como os logs de execução, podem ser encontrados na pasta `stress-test/user-files/results`.
@@ -251,7 +257,7 @@ Conseguimos uma execução sem falhas, indicando que nossas soluções de otimiz
 ![grafico1](https://github.com/ramosfabiano/rinha-de-backend-2023-q3/blob/main/resultados-ec2/performance.png)
 
 
-Como referẽncia, um total de xxxx registros se encontravam persistidos no banco após a finalização dos testes.
+Como referẽncia, um total de 46583 registros se encontravam persistidos no banco após a finalização dos testes.
 Esses números devem ser interpretados cuidadosamente se comparados aos resultados dos participantes do desafio, pois o
 ambiente e condições de execução foi muito provavelmente distinto. No entanto, eles nos confirmam que nosso esforço
 foi eficaz e na direção correta.
