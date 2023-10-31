@@ -15,7 +15,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.9'
+          cpus: '0.75'
           memory: '1.0GB'
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
@@ -64,7 +64,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.3'
+          cpus: '0.25'
           memory: '0.6GB'
 
   # app instancia 02
@@ -90,7 +90,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.3'
+          cpus: '0.25'
           memory: '0.6GB'
 
   # balanceador de carga
