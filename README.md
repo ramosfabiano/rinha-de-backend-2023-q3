@@ -6,7 +6,7 @@ Chegamos atrasado na festa, mas como a idéia era bastante interessante, decidim
 
 Em resumo, o objetivo é desenvolver uma API simples, e sobreviver aos testes de estresse usando pouquíssimos recursos (1.5 vCPU e 3GB de RAM) em uma máquina AWS EC2.
 
-O desafio especifica o deploy via *docker-compose*, com duas instâncias para a API, uma instância para o *load balancer* e outra para o banco de dados (Postgres, MySQL, ou MongoDB).
+O desafio especifica o deploy via *docker-compose*, com duas instâncias para a API, uma instância para o *load balancer* e outra para o banco de dados.
 
 A especificação completa pode ser encontrada [aqui](https://github.com/zanfranceschi/rinha-de-backend-2023-q3/blob/main/INSTRUCOES.md). 
 
