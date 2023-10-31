@@ -38,6 +38,15 @@ def PessoaRepresentation(pessoa: Pessoa):
         "stack": list(pessoa.stack.split(" ")) if pessoa.stack else None
     }
 
+def PessoaRepresentationEx(id: str, apelido: str, nome: str, nascimento: date, stack: List[str]):
+    return {
+    	"id": id,
+        "apelido": apelido,
+        "nome": nome,
+        "nascimento": nascimento.strftime('%Y-%m-%d'),
+        "stack": None if (stack is None or len(stack) == 0) else [s for s in stack if s]
+    }
+
 def PessoaListRepresentation(pessoas: List[Pessoa]):
     return [PessoaRepresentation(p) for p in pessoas]
 

@@ -1,8 +1,12 @@
 import unittest
+import uuid
+import time
+import asyncio
 from fastapi.testclient import TestClient
 from main import app
 from main import cache_id, cache_apelido
 from models.pessoa import Pessoa
+from schemas import PessoaRepresentation
 from models import Session
 
 
@@ -15,17 +19,19 @@ class AppTests(unittest.TestCase):
     def setUp(self):
         self.pessoas_dict = {}
         pessoas_list = [
-            Pessoa('snowj','John Snow','1986-12-26',['Python2', 'Flask']),
-            Pessoa('dtarg','Daenerys Targaryen','1986-10-23',['Python3', 'Flask', 'C++']),
-            Pessoa('tlannister','Tyrion Lannister','1969-05-11',['C++']),
-            Pessoa('astark','Arya Stark','1997-04-15',['C++','Java']),
-            Pessoa('clannister','Cersei Lannister','1973-10-03',['Java', 'Pascal']),
-            Pessoa('bronn','Bronn','1963-03-06', None)
+            Pessoa(str(uuid.uuid4()), 'snowj','John Snow','1986-12-26',['Python2', 'Flask']),
+            Pessoa(str(uuid.uuid4()), 'dtarg','Daenerys Targaryen','1986-10-23',['Python3', 'Flask', 'C++']),
+            Pessoa(str(uuid.uuid4()), 'tlannister','Tyrion Lannister','1969-05-11',['C++']),
+            Pessoa(str(uuid.uuid4()), 'astark','Arya Stark','1997-04-15',['C++','Java']),
+            Pessoa(str(uuid.uuid4()), 'clannister','Cersei Lannister','1973-10-03',['Java', 'Pascal']),
+            Pessoa(str(uuid.uuid4()), 'bronn','Bronn','1963-03-06', None)
         ]
         session = Session()
         for p in pessoas_list:
-            session.add(p)
             self.pessoas_dict[p.apelido]=p.id
+            cache_id._set(p.id, PessoaRepresentation(p))
+            cache_apelido._set(p.apelido, {"id": p.id})            
+            session.add(p)
         session.commit()
         session.close()
 
@@ -48,10 +54,6 @@ class AppTests(unittest.TestCase):
         self.assertEqual(len(data['stack']), 2)
         self.assertEqual(data['stack'][0], 'C++')
         self.assertEqual(data['stack'][1], 'Java')
-        # verifica a inclusão
-        session = Session()
-        self.assertEqual(session.query(Pessoa).count(), len(self.pessoas_dict)+1)
-        session.close()
 
     def test_cria_pessoas_201_filtra_stack_entries_vazias(self):
         response = self.client.post('/pessoas/', json={'apelido': 'jdoe', 'nome': 'John Doe', 'nascimento': '1990-01-01', 'stack': ['', 'C++', '', 'Java', '']})
@@ -64,10 +66,6 @@ class AppTests(unittest.TestCase):
         self.assertEqual(len(data['stack']), 2)
         self.assertEqual(data['stack'][0], 'C++')
         self.assertEqual(data['stack'][1], 'Java')
-        # verifica a inclusão
-        session = Session()
-        self.assertEqual(session.query(Pessoa).count(), len(self.pessoas_dict)+1)
-        session.close()
 
     def test_cria_pessoas_201_empty_stack_v1(self):
         response = self.client.post('/pessoas/', json={'apelido': 'jdoe2', 'nome': 'John Doe 2', 'nascimento': '2000-02-02', 'stack': None})
@@ -179,13 +177,7 @@ class AppTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), 6)
 
-    def test_caching_after_read(self):        
-        for apelido, id in self.pessoas_dict.items():
-            response = self.client.get(f'/pessoas/{id}')
-            self.assertEqual(response.status_code, 200)
-            data = response.json()
-            self.assertEqual(data['apelido'], apelido)
-            self.assertEqual('cached' in data, False)
+    def test_caching(self):        
         for apelido, id in self.pessoas_dict.items():
             response = self.client.get(f'/pessoas/{id}')
             self.assertEqual(response.status_code, 200)

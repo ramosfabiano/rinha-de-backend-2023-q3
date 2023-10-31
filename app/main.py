@@ -6,6 +6,8 @@ from sqlalchemy import or_
 from typing import List
 import json
 from datetime import date
+import asyncio
+import uuid
 
 from cache import Cache;
 from models import *
@@ -22,6 +24,35 @@ cache_apelido = Cache(use_local_cache = True, use_remote_cache = True, local_cac
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exception):
     return JSONResponse(status_code=400, content=ErrorRepresentation(400, 'Bad request'))
+
+#
+# insercao em background
+#
+
+job_queue = asyncio.Queue()
+
+async def worker():
+    max_insertions_per_batch = 100
+    while True:
+        batch = []
+        while (len(batch) < max_insertions_per_batch):
+            try:
+                p = await asyncio.wait_for(job_queue.get(), timeout=1)
+                batch.append(p)
+            except asyncio.TimeoutError:
+                break
+        if batch:
+            with Session() as session:
+                for p in batch:
+                    p = Pessoa(p['id'], p['apelido'], p['nome'], p['nascimento'], p['stack'])
+                    session.add(p)
+                session.commit()
+        if (job_queue.empty()):
+            await asyncio.sleep(1)
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(worker())
 
 #
 # endpoints
@@ -47,20 +78,16 @@ curl -v -X 'POST'   'http://localhost:8081/pessoas'   -H 'accept: application/js
 '''
 @app.post("/pessoas", response_model=PessoaViewSchema, status_code=201)
 async def cria_pessoa(pessoa: PessoaAddSchema):
-    try:
-        p = await cache_apelido.get(pessoa.apelido)
-        if (p):
+    try:        
+        # verificao de integridade precisa ser feita agora, pois a inclusao no banco ocorrerá em background
+        if (not pessoa.nascimento or not pessoa.nome or not pessoa.apelido or await cache_apelido.get(pessoa.apelido)):
             return JSONResponse(status_code=422, content=ErrorRepresentation(422, 'Unprocessable entity/content'))
-        session = Session()
-        p = Pessoa(pessoa.apelido, pessoa.nome, pessoa.nascimento, pessoa.stack)
-        session.add(p)
-        session.commit()
-        session.refresh(p)
-        session.close()
-        response = PessoaRepresentation(p)
-        await cache_id.set(p.id, response)
-        await cache_apelido.set(p.apelido, {'id': p.id})
-        return JSONResponse(status_code=201, content=response, headers={'Location': f'/pessoas/{p.id}'})
+        id = str(uuid.uuid4())
+        response = PessoaRepresentationEx(id, pessoa.apelido, pessoa.nome, pessoa.nascimento, pessoa.stack)
+        await job_queue.put(response)
+        await cache_id.set(id, response)
+        await cache_apelido.set(pessoa.apelido, {'id': id})
+        return JSONResponse(status_code=201, content=response, headers={'Location': f'/pessoas/{id}'})
     except IntegrityError:
         return JSONResponse(status_code=422, content=ErrorRepresentation(422, 'Unprocessable entity/content'))
     except Exception as e:

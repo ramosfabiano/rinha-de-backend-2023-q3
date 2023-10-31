@@ -1,7 +1,6 @@
 from sqlalchemy import Column, String, Integer, Date, ARRAY, text
 from models.base import Base
 from datetime import date
-import uuid
 
 class Pessoa(Base):
 
@@ -16,8 +15,8 @@ class Pessoa(Base):
     stack = Column(String(2048), unique=False, nullable=True)
     termo = Column(String(), server_default=text("LOWER(CONCAT(apelido, ' ', nome, COALESCE(CONCAT(' (', stack, ')'), '')))"))
 
-    def __init__(self, apelido, nome, nascimento, stack):
-        self.id = str(uuid.uuid4())
+    def __init__(self, id, apelido, nome, nascimento, stack):
+        self.id = id
         self.apelido = apelido
         self.nome = nome
         self.nascimento = nascimento

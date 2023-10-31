@@ -177,9 +177,9 @@ Apresentamos aqui os resultados...
 
 ### Discussão
 
-- determinismo da avaliação: hyperthreading, EBS vs disco local
-  - assumimos que a máquina host possui pelo menos 2 cores (cpuset 0 e 1)
+- determinismo da avaliação: SMT(hyperthreading), cpuset vs %cpu, EBS vs disco local
 
+  
 - requests podem falhar?
 
 - modelo de consistência da API
@@ -193,10 +193,6 @@ Outro ponto importante na implementação deste desafio foram a configurações 
  (nível de log, número máximo de conexão, tamanhos de buffer, etc...), Focamos em customizar as opções mais relevantes e 
 determinamos os valores adequados através de pesquisa seguida de experimentação.
 
-Além disso, a distribuição ideal dos recursos entre os contêineres também foi um ponto crucial. Como metodologia, iniciamos 
-com uma composição com recursos abuntantes para cada unidade, de forma que a aplicação conseguisse aguentar o teste de estresse e 
-terminar sem falhas. Uma vez determinada tal configuração, fomos reduzindo invidualmente os recursos do postgres,
-do redis e do nginx, nesta ordem, de forma a identificar onde estavam os gargalos e (i) definir as configurações
-mínimas (em termos de recursos) e ótimas (em termos de configuração específicas) para cada serviço e (ii) implementar 
-otimizações na aplicação, caso necessário. Realizamos diversas interações deste processo.
+Além disso, a distribuição ideal dos recursos entre os contêineres também foi um ponto crucial. Como metodologia
+`podman  stats` `monitor.py`
 

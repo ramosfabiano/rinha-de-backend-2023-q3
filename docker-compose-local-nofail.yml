@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.5'
 services:
 
   # banco de dados
@@ -15,9 +15,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.85'
-          cpuset: '0'
-          memory: '1.4GB'
+          cpus: '0.7'
+          memory: '1.0GB'
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
@@ -39,9 +38,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.15'
-          cpuset: '0'
-          memory: '0.2GB'      
+          cpus: '0.1'
+          memory: '0.1GB'      
 
   # app instancia 01
   app01:
@@ -66,8 +64,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.425'
-          cpuset: '1'
+          cpus: '0.3'
           memory: '0.6GB'
 
   # app instancia 02
@@ -93,8 +90,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.425'
-          cpuset: '1'
+          cpus: '0.3'
           memory: '0.6GB'
 
   # balanceador de carga
@@ -115,8 +111,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.15'
-          cpuset: '1'
-          memory: '0.2GB'
+          cpus: '0.1'
+          memory: '0.7GB'
 
     

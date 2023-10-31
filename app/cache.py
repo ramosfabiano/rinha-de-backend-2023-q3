@@ -1,7 +1,8 @@
-import redis
 from cachetools import cached, FIFOCache 
+import redis
 import os
 import json
+import asyncio
 
 class Cache:
 
@@ -40,7 +41,7 @@ class Cache:
             self._remote_cache = None
             self._using_remote_cache = False
 
-    async def set(self, key: str, value: dict):    
+    def _set(self, key: str, value: dict):    
         if (key is None):
             return False
         value_str = json.dumps(value)
@@ -54,7 +55,7 @@ class Cache:
             cached = True
         return cached
 
-    async def get(self, key: str) -> dict:
+    def _get(self, key: str) -> dict:
         if (key is None):
             return None
         if (self._using_local_cache and (key in self._local_cache)):
@@ -72,6 +73,12 @@ class Cache:
                 value_dict['cached'] = 'remote'
                 return value_dict
         return None
+
+    async def set(self, key: str, value: dict):    
+        return self._set(key, value)
+
+    async def get(self, key: str) -> dict:
+        return self._get(key)
 
     def clear(self):
         if (self._using_remote_cache):
