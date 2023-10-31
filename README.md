@@ -20,7 +20,7 @@ A especificação completa pode ser encontrada [aqui](https://github.com/zanfran
 
 ## Requisitos
 
-Desenvolvemos nossa solução sobre a plataforma Ubuntu Linux 22.04 LTS, com gerenciamento e execução de *containers* realizado através do *podman* e do *podman-compose*.
+Desenvolvemos nossa solução sobre a plataforma Ubuntu Linux 22.04 LTS, com gerenciamento e execução de contêineres realizado através do *podman* e do *podman-compose*.
 
 A instalação e configuração do *podman* e do *podman-compose* pode ser feita da seguinte forma:
 
