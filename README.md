@@ -132,10 +132,10 @@ sido esclarecidos por outros meios que não as instruções oficiais), como por 
   * qual o modelo de consistência que a API deveria oferecer? 
   * todas as requisições deveriam ser atendidas com sucesso ou seria permitido que um certo percentual das requisições não fossem atendidas?
 
-Neste sentido, até por nossa implementação ter caráter não-competitivo, decidimos livremente sobre cada uma destas questões, a saber:
+Neste sentido, até pelo fato de nossa implementação não ter caráter competitivo, decidimos livremente sobre cada um destes pontos, a saber:
   * desabilitamos o SMT.
   * não utilizamos *cpuset*.
-  * utilizamos configuração explícita de *cpu share*
+  * utilizamos configuração explícita de *cpu share*.
   * utilizamos instâncias com disco local (*instance storage*), evitando EBS (que é um *network storage*).
   * utilizamos a instância EC2 mais simples oferecendo discos locais (família *c5d*).
   * nossa API oferece consistência eventual. Como as escritas ao banco são feitas com atraso, em *batch*, as operações imediatas seguintes de leitura serão consistentes (devido ao *cache*) mas buscas por termo serão eventualmente consistentes.
