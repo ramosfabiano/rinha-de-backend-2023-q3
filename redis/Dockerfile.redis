@@ -1,0 +1,7 @@
+FROM docker.io/redis:7.2.3
+
+COPY ./redis/redis.conf /etc/redis-custom.conf 
+RUN chown redis.redis  /etc/redis-custom.conf 
+
+CMD ["redis-server", "/etc/redis-custom.conf"]
+

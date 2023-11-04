@@ -4,14 +4,13 @@ services:
   # banco de dados
   postgres_test:
     container_name: postgres_test
-    image: docker.io/postgres
+    build: 
+      context: ./
+      dockerfile: postgres/Dockerfile.postgres
     hostname: postgres_test
     network_mode: host
     env_file:
       - ./postgres/vars.env
-    volumes:
-      - ./postgres/config.sql:/docker-entrypoint-initdb.d/config.sql
-      - ./postgres/table.sql:/docker-entrypoint-initdb.d/table.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
@@ -22,14 +21,13 @@ services:
   # cache
   redis:
     container_name: redis_test
-    image: docker.io/redis
+    build: 
+      context: ./
+      dockerfile: redis/Dockerfile.redis
     hostname: redis_test
     network_mode: host   
     ports:
       - "6379:6379"
-    volumes:
-      - ./redis/redis.conf:/etc/redis-custom.conf     
-    command: redis-server /etc/redis-custom.conf
 
 
   # test app

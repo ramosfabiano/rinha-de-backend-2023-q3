@@ -33,7 +33,7 @@ class Cache:
     def __create_remote_cache(self, remote_db_index: int):
         if (not remote_db_index in range(0,16)): 
             raise Exception('cannot create remote cache, invalid db index')
-        self._remote_cache = redis.Redis(host=os.environ['REDIS_HOST'], port=os.environ['REDIS_PORT'], password=os.environ['REDIS_PASSWORD'], db=remote_db_index) 
+        self._remote_cache = redis.Redis(host=os.environ['REDIS_HOST'], port=os.environ['REDIS_PORT'], db=remote_db_index) 
         self._using_remote_cache = True
 
     def __release_remote_cache(self):
