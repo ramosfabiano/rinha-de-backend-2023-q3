@@ -122,25 +122,6 @@ determinamos os valores adequados através de pesquisa seguida de experimentaç�
 destas configurações sobre uso de CPU e memória de cada serviço, afetando diretamente a divisão dos (pouquíssimos) recursos entre os serviços.
 O monitoramento da execução da aplicação usando o `podman  stats` foi crucial para o refinamento iterativo da distribuição dos recursos.
 
-Já sobre a avaliação (originalmente uma competição) alguns pontos pareciam não muito bem definidos (talvez tenham 
-sido esclarecidos por outros meios que não as instruções oficiais), como por exemplo:
-  * o uso de SMT(*hyperthreading*): as 1.5 unidades de vCPU rodariam em um único *core* ou em *cores* separados? 
-  * seria permitido o uso de afinidade via *cpuset*? 
-  * a configuração explicita do percentual de cpu era mandatório ou poderia-se ter, por exemplo, N contêineres limitados a uma mesma vCPU, contando assim como 1.0 unidade de recurso vCPU? Isso permitiria uma alocação dinâmica do recurso vCPU.
-  * ao realizar a avaliação numa instância EC2, a mesma usaria EBS ou SSD local como *storage*? No caso de EBS, qual configuração? A eficiência do armazenamento afeta diretamente a dinâmica de execução e com isso a distribiução dos recursos entre os serviços.
-  * qual exatamente seria a CPU usada? Analogamente à questão do armazenamento, a velocidade relativa da CPU em relação às operações de I/O também afeta a distribuição ótima dos recursos.
-  * qual o modelo de consistência que a API deveria oferecer? 
-  * todas as requisições deveriam ser atendidas com sucesso ou seria permitido que um certo percentual das requisições não fossem atendidas?
-
-Neste sentido, até pelo fato de nossa implementação não ter caráter competitivo, decidimos livremente sobre cada um destes pontos, a saber:
-  * desabilitamos o SMT.
-  * não utilizamos *cpuset*.
-  * utilizamos configuração explícita de *cpu share*.
-  * utilizamos instâncias com disco local (*instance storage*), evitando EBS (que é um *network storage*).
-  * utilizamos a instância EC2 mais simples oferecendo discos locais (família *c5d*).
-  * nossa API oferece consistência eventual. Como as escritas ao banco são feitas com atraso, em *batch*, as operações imediatas seguintes de leitura serão consistentes (devido ao *cache*) mas buscas por termo serão eventualmente consistentes.
-  * tentamos manter o percentual de falhas < 1%.
-
 ## Avaliação - AWS EC2
 
 Realizamos a avaliação de nossa implementação na [AWS EC2](https://aws.amazon.com/), conforme proposto no desafio.
