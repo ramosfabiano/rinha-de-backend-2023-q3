@@ -104,24 +104,6 @@ $ ./run-test.sh ~/bin/gatling-3.9.5/
 
 Após o término dos testes, os resultados poderão ser encontrados na pasta `stress-test/user-files/results`.
 
-## Discussão
-
-Agora algumas considerações sobre o desafio e sobre a forma de avaliação.
-
-No que tange à implementação, levamos a cabo as otimizações típicas, como *caching* (local e remoto), uso de
-assincronismo, escritas em lote no banco, criação de um campo extra na tabela para acelerar as buscas.
-Tentamos também manter o código razoavelmente limpo e organizado, e evitar lançar mão de otimizações inseguras que não seriam feitas
-em produção, como por exemplo uso de SQL *raw*. Implementamos também testes unitários para a API e para o cache.
-
-Logicamente a linguagem *Python* não é a mais eficiente possível, mas acreditávamos que ela poderia ser viável num contexto
-de execução predominantemente *io-bound*. 
-
-Também trabalhamos sobre as configurações específicas dos serviços *postgres*, *nginx* e *redis*  (nível de *log*, 
-número máximo de conexões, tamanhos de *buffers*, etc...). Focamos em customizar as opções mais relevantes e 
-determinamos os valores adequados através de pesquisa seguida de experimentação. Foi muito interessante notar o efeito
-destas configurações sobre uso de CPU e memória de cada serviço, afetando diretamente a divisão dos (pouquíssimos) recursos entre os serviços.
-O monitoramento da execução da aplicação usando o `podman  stats` foi crucial para o refinamento iterativo da distribuição dos recursos.
-
 ## Avaliação - AWS EC2
 
 Realizamos a avaliação de nossa implementação na [AWS EC2](https://aws.amazon.com/), conforme proposto no desafio.
